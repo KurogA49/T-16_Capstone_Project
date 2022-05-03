@@ -68,7 +68,7 @@ public class DatabaseService {
 
     public void saveStoryInfo() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO StoryTable (Story, StoryViewState, RecomandMovie, RecommandMusic, RecommandBook) values (?, ?, ?, ?, ?)", new Object[]{"Nice Story", 15, "Very Cool Movie", "Very Graceful Music", "Very Stable Book"});
+        writer.execSQL("INSERT INTO StoryTable (Story, StoryViewState, RecommandMovie, RecommandMusic, RecommandBook) values (?, ?, ?, ?, ?)", new Object[]{"Nice Story", 15, "Very Cool Movie", "Very Graceful Music", "Very Stable Book"});
         closeDatabase();
     }
 
@@ -76,6 +76,11 @@ public class DatabaseService {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
         writer.execSQL("UPDATE AppSettingTable set TimeSetting = ?, RecordAgreed = ?", new Object[]{time, agreed});
         closeDatabase();
+    }
+
+    public void DBUpgrade(int oldVersion, int newVersion) {
+        SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
+        dbOpenHelper.onUpgrade(writer, oldVersion, newVersion);
     }
 
     public Cursor getAllDiary() {
@@ -89,7 +94,7 @@ public class DatabaseService {
         SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
         String lower = Integer.toString(option - 3);
         String upper = Integer.toString(option + 3);
-        Cursor cursor = reader.rawQuery("SELECT * FROM StoryTable WHERE StoryTable >= " + lower + " AND StoryTable <= " + upper, null);
+        Cursor cursor = reader.rawQuery("SELECT * FROM StoryTable WHERE StoryTable.StoryViewState >= " + lower + " AND StoryViewState <= " + upper + ";" , null);
 
         return cursor;
     }

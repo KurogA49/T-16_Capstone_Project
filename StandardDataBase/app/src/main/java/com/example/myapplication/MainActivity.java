@@ -42,8 +42,7 @@ public class MainActivity extends AppCompatActivity {
         btnInit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dbsvs.dropTable("DiaryTable");
-                dbsvs.createDiaryTable();
+                dbsvs.DBUpgrade(1, 2);
                 sqlDB = myDBHelper.getWritableDatabase();
                 myDBHelper.onUpgrade(sqlDB,1,2);
                 sqlDB.close();
@@ -54,10 +53,7 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("WrongConstant")
             @Override
             public void onClick(View v) {
-                dbsvs.saveDiaryInfo();
-                sqlDB = myDBHelper.getWritableDatabase();
-                sqlDB.execSQL("INSERT INTO groupTBL VALUES ( '" + edtName.getText().toString() + "' , '"+edtNumber.getText().toString() + "' , '" + edtType.getText().toString() +"');");
-                sqlDB.close();
+                dbsvs.saveStoryInfo();
                 dbsvs.closeDatabase();
                 Toast.makeText(getApplicationContext(),"입력됨",0).show();
             }
@@ -68,21 +64,22 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 sqlDB = myDBHelper.getReadableDatabase();
                 Cursor cursor;
-                cursor = dbsvs.getAllDiary();
+                cursor = dbsvs.getConditionalStory(15);
 
                 String strNames = "목록 리스트"+"\r\n"+"\r\n";
                 String strNumbers = "수량"+"\r\n"+"\r\n";
                 String strTypes = "종류"+"\r\n"+"\r\n";
 
                 while (cursor.moveToNext()){
-                    strNames += cursor.getString(0) + "\r\n";
-                    strNumbers += cursor.getString(1) + "\r\n";
-                    strTypes += cursor.getString(2) + "\r\n";
+                    strNames += cursor.getString(2) + "\r\n";
+                    strNumbers += cursor.getString(3) + "\r\n";
+                    strTypes += cursor.getString(4) + "\r\n";
                 }
                 edtNameResultm.setText(strNames);
                 edtNumberResult.setText(strNumbers);
                 edtTypeResult.setText(strTypes);
                 cursor.close();
+                dbsvs.closeDatabase();
                 sqlDB.close();
             }
         });

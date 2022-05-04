@@ -48,6 +48,7 @@ public class EmotionCheck extends AppCompatActivity {
         } else if (emotion.equals("Neutral") || emotion.equals("중립적")) {
             emotion = "중립적";
         }
+
         t1.setText(emotion);
 
 
@@ -61,7 +62,7 @@ public class EmotionCheck extends AppCompatActivity {
         btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(EmotionCheck.this, AnalysisMenu.class);
+                Intent intent = new Intent(EmotionCheck.this, AnalysisMenu.class); // 결과값에 따른 상호작용 화면으로 수정 필요
                 intent.putExtra("Emotion", emotion);
                 startActivity(intent);
             }

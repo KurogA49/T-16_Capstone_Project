@@ -43,6 +43,10 @@ public class EmotionCheck extends AppCompatActivity {
         } else if (emotion.equals("Anger") || emotion.equals("화남")) {
             emotion = "화남";
 
+        } else if (emotion.equals("Contempt") || emotion.equals("경멸")) {
+            emotion = "경멸";
+        } else if (emotion.equals("Neutral") || emotion.equals("중립")) {
+            emotion = "중립";
         }
         t1.setText(emotion);
 

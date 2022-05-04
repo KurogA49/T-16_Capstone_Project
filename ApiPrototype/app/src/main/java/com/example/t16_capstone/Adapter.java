@@ -74,6 +74,8 @@ public class Adapter extends BaseAdapter {
         treeMap.put(faces[position].faceAttributes.emotion.sadness, "Sadness");
         treeMap.put(faces[position].faceAttributes.emotion.surprise, "Surprise");
         treeMap.put(faces[position].faceAttributes.emotion.fear, "Fear");
+        treeMap.put(faces[position].faceAttributes.emotion.contempt, "Contempt");
+        treeMap.put(faces[position].faceAttributes.emotion.neutral, "Neutral");
 
         int counter = 0;
         for (Map.Entry<Double, String> entry : treeMap.entrySet()) {

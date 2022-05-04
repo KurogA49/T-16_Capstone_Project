@@ -27,7 +27,7 @@
             android:textColor="#ffffff"
             android:textSize="20sp"
             android:layout_gravity="center"
-            android:text="인식된 감성은"/>
+            android:text="당신의 감정은..."/>
 
     </LinearLayout>
 
@@ -67,7 +67,7 @@
             android:textColor="#ffffff"
             android:textSize="20sp"
             android:layout_gravity="center"
-            android:text="이 부분은 감정에 맞는 상호작용\nNext버튼 클릭시 상호작용 진행"/>
+            android:text="Next버튼 클릭시 상호작용 진행"/>
 
     </LinearLayout>
 

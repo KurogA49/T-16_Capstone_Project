@@ -19,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
     EditText edtName, edtNumber, edtType, edtNameResultm, edtNumberResult, edtTypeResult;
     Button btnInit, btnInsert, btnSelect;
     SQLiteDatabase sqlDB;
+    private int i = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("WrongConstant")
             @Override
             public void onClick(View v) {
-                dbsvs.saveStoryInfo();
+                dbsvs.saveStoryInfo(i++);
                 dbsvs.closeDatabase();
                 Toast.makeText(getApplicationContext(),"입력됨",0).show();
             }
@@ -62,25 +63,28 @@ public class MainActivity extends AppCompatActivity {
         btnSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sqlDB = myDBHelper.getReadableDatabase();
-                Cursor cursor;
-                cursor = dbsvs.getConditionalStory(15);
+                int number = 1;
+                Cursor cursor, cursor2;
+
+                cursor = dbsvs.getStoryKeyByValue(15);
 
                 String strNames = "목록 리스트"+"\r\n"+"\r\n";
                 String strNumbers = "수량"+"\r\n"+"\r\n";
                 String strTypes = "종류"+"\r\n"+"\r\n";
 
-                while (cursor.moveToNext()){
-                    strNames += cursor.getString(2) + "\r\n";
-                    strNumbers += cursor.getString(3) + "\r\n";
-                    strTypes += cursor.getString(4) + "\r\n";
+                while(cursor.moveToNext()) {
+                    cursor2 = dbsvs.getStoryById(cursor.getInt(0));
+                    cursor2.moveToNext();
+                    strNames += cursor2.getString(2) + "\r\n";
+                    strNumbers += cursor2.getInt(5) + "\r\n";
+                    strTypes += cursor2.getInt(1) + "\r\n";
                 }
+
                 edtNameResultm.setText(strNames);
                 edtNumberResult.setText(strNumbers);
                 edtTypeResult.setText(strTypes);
                 cursor.close();
-                dbsvs.closeDatabase();
-                sqlDB.close();
+
             }
         });
 

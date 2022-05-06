@@ -12,8 +12,8 @@ class DBOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE DiaryTable ( Diary TEXT, FaceAnalysResult REAL, FacePhotoPath CHAR(30));");
-        db.execSQL("CREATE TABLE StoryTable ( Story TEXT, StoryViewState INTEGER, RecommandMovie CHAR(20), RecommandMusic CHAR(20), RecommandBook CHAR(20));");
+        db.execSQL("CREATE TABLE DiaryTable ( Diary TEXT, FaceAnalysResult REAL, FacePhotoPath CHAR(30), SerialId INTEGER PRIMARY KEY);");
+        db.execSQL("CREATE TABLE StoryTable ( Story TEXT, StoryViewState INTEGER, RecommandMovie CHAR(20), RecommandMusic CHAR(20), RecommandBook CHAR(20), SerialId INTEGER PRIMARY KEY);");
         db.execSQL("CREATE TABLE AppSettingTable ( TimeSetting INTEGER, RecordAgreed Boolean);");
     }
 
@@ -44,13 +44,13 @@ public class DatabaseService {
 
     public void createDiaryTable() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS DiaryTable ( Diary TEXT, FaceAnalysResult REAL, FacePhotoPath CHAR(30));");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS DiaryTable ( Diary TEXT, FaceAnalysResult REAL, FacePhotoPath CHAR(30), SerialId INTEGER PRIMARY KEY);");
         closeDatabase();
     }
 
     public void createStoryTable() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS StoryTable ( Story TEXT, StoryViewState INTEGER, RecommandMovie CHAR(20), RecommandMusic CHAR(20), RecommandBook CHAR(20));");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS StoryTable ( Story TEXT, StoryViewState INTEGER, RecommandMovie CHAR(20), RecommandMusic CHAR(20), RecommandBook CHAR(20), SerialId INTEGER PRIMARY KEY);");
         closeDatabase();
     }
 
@@ -62,13 +62,13 @@ public class DatabaseService {
 
     public void saveDiaryInfo() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO DiaryTable (Diary, FaceAnalysResult, FacePhotoPath) values (?, ?, ?)", new Object[]{"Today's Diary", 20.3, "Photo's Path"});
+        writer.execSQL("INSERT INTO DiaryTable (Diary, FaceAnalysResult, FacePhotoPath) values (?, ?, ?, ?)", new Object[]{"Today's Diary", 20.3, "Photo's Path", 1});
         closeDatabase();
     }
 
-    public void saveStoryInfo() {
+    public void saveStoryInfo(int id) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO StoryTable (Story, StoryViewState, RecommandMovie, RecommandMusic, RecommandBook) values (?, ?, ?, ?, ?)", new Object[]{"Nice Story", 15, "Very Cool Movie", "Very Graceful Music", "Very Stable Book"});
+        writer.execSQL("INSERT INTO StoryTable (Story, StoryViewState, RecommandMovie, RecommandMusic, RecommandBook, SerialId) values (?, ?, ?, ?, ?, ?)", new Object[]{"Nice Story", 14 + (int)(Math.random() * 2), "Very Cool Movie", "Very Graceful Music", "Very Stable Book", id});
         closeDatabase();
     }
 
@@ -90,11 +90,18 @@ public class DatabaseService {
         return cursor;
     }
 
-    public Cursor getConditionalStory(int option) {
+    public Cursor getStoryKeyByValue(int option) {
         SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
         String lower = Integer.toString(option - 3);
         String upper = Integer.toString(option + 3);
-        Cursor cursor = reader.rawQuery("SELECT * FROM StoryTable WHERE StoryTable.StoryViewState >= " + lower + " AND StoryViewState <= " + upper + ";" , null);
+        Cursor cursor = reader.rawQuery("SELECT SerialId FROM StoryTable WHERE StoryTable.StoryViewState >= " + lower + " AND StoryViewState <= " + upper + ";" , null);
+
+        return cursor;
+    }
+
+    public Cursor getStoryById(int key) {
+        SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
+        Cursor cursor = reader.rawQuery("SELECT * FROM StoryTable WHERE StoryTable.SerialId = " + Integer.toString(key) +  ";" , null);
 
         return cursor;
     }

@@ -55,14 +55,14 @@ public class EmotionCheck extends AppCompatActivity {
         btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(EmotionCheck.this, AnalysisMenu.class);
+                Intent intent = new Intent(EmotionCheck.this, AnalysisCameraMenu2.class);
                 startActivity(intent);
             }
         });
         btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(EmotionCheck.this, AnalysisMenu.class); // 결과값에 따른 상호작용 화면으로 수정 필요
+                Intent intent = new Intent(EmotionCheck.this, AnalysisCameraMenu2.class); // 결과값에 따른 상호작용 화면으로 수정 필요
                 intent.putExtra("Emotion", emotion);
                 startActivity(intent);
             }

@@ -1,169 +1,190 @@
 package com.example.t16_capstone;
 
-import android.Manifest;
-import android.app.ProgressDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import com.google.gson.Gson;
-import com.microsoft.projectoxford.face.FaceServiceClient;
-import com.microsoft.projectoxford.face.FaceServiceRestClient;
-import com.microsoft.projectoxford.face.contract.Face;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 public class AnalysisMenu extends AppCompatActivity {
 
-    Button process, takePicture;
-    ImageView imageView, hidden;
+    private BackKeyHandler backKeyHandler = new BackKeyHandler(this);
+    private TextView descText;
+    private ImageButton nextBtn;
+    private Button[] emoBtnGroup;
+    private Button reCapYesBtn;
+    private Button reCapNoBtn;
+    private LinearLayout emoBtnGroupLayout;
+    private LinearLayout reCaptureLayout;
+    private ImageView character;
 
-    private FaceServiceClient faceServiceClient;
-    Bitmap mBitmap;
-    Boolean ready = false;
+    private String emotionResult = ""; // 기쁜, 평범한, 당황스런, 기분나쁜, 불안한, 슬픈, 복잡한
+    private int descCursor;
+    private final int GO_CAMERA_MENU = 100;
+    private String[] desc = {"안녕하세요!", "오늘도 사용자님의 얼굴을 보기위해 왔어요.", "오늘의 얼굴을 보여주세요!", // 초기 0 ~ 2
+            "흐으음", "제가 보기엔 ", " 하루셨던 것 같네요.",   // 감정 결과 3 ~ 5
+            "아니면 사실 다른 기분이신가요?", "알겠어요.", // 기본 흐름 6 ~ 7
+            "다시 찍어드릴까요?", "이번엔 제대로 찍어드릴게요!", "복잡한 기분이신가 봐요.."};  // emotionResult == "복잡한" 일때 8 ~ 10
+
+    // 바인딩 객체 호출
+    private AnalysisBinding analysisBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.analysis_menu);
+        setContentView(R.layout.analysis_menu_desc);
 
-        //IMPORTANT!!------------------------------------------------------------------------------
-        //Replace the below tags <> with your own endpoint and API Subscription Key.
-        //For help with this, read the project's README file.
-        faceServiceClient = new FaceServiceRestClient("https://koreacentral.api.cognitive.microsoft.com/face/v1.0", "b0e2b0a6353340b7bb2a99f1fa19c2d7");
+        descText = findViewById(R.id.descText);
+        character = findViewById(R.id.character);
+        nextBtn = findViewById(R.id.nextBtn);
+        nextBtn.setOnClickListener(nextEvent);
 
-        takePicture = findViewById(R.id.takePic);
-        imageView = findViewById(R.id.imageView);
-        hidden = findViewById(R.id.hidden);
-        imageView.setVisibility(View.INVISIBLE);
+        reCapYesBtn = findViewById(R.id.reCapYesBtn);
+        reCapNoBtn = findViewById(R.id.reCapNoBtn);
+        reCapYesBtn.setOnClickListener(reCapture);
+        reCapNoBtn.setOnClickListener(reCapture);
+        emoBtnGroup = new Button[8];
+        emoBtnGroup[0] = findViewById(R.id.happyBtn);
+        emoBtnGroup[1] = findViewById(R.id.normalBtn);
+        emoBtnGroup[2] = findViewById(R.id.embarrassBtn);
+        emoBtnGroup[3] = findViewById(R.id.annoyedBtn);
+        emoBtnGroup[4] = findViewById(R.id.anxiousBtn);
+        emoBtnGroup[5] = findViewById(R.id.sadBtn);
+        emoBtnGroup[6] = findViewById(R.id.complicateBtn);
+        emoBtnGroup[7] = findViewById(R.id.noBtn);
+        for(int i=0; i<emoBtnGroup.length; i++)
+            emoBtnGroup[i].setOnClickListener(analysWithAnswer);
+        emoBtnGroupLayout = findViewById(R.id.emoBtnGroupLayout);
+        reCaptureLayout = findViewById(R.id.reCaptureLayout);
 
-        process = findViewById(R.id.processClick);
-        takePicture.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(AnalysisMenu.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
-                } else {
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(intent, 100);
-                }
-            }
-        });
+        analysisBinding = new AnalysisBinding(this);
 
-        process.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (ready) {
-                    detectandFrame(mBitmap);
-                } else {
-                    makeToast("사진을 찍어 주세요");
-                }
-            }
-        });
+        // 선언 끝
+
+        Intent intent = getIntent();
+        String argv = intent.getStringExtra("Argv");
+        switch(argv) {
+            case "MainToDesc":      // "안녕하세요!"
+                descCursor = 0;
+                break;
+            case "CameraToDesc":    // "흐으음"
+                descCursor = 3;
+                emotionResult = analysisBinding.analysFaceWithAPI();
+                break;
+            default:
+                System.err.println("액티비티 인자 값 오류");
+                System.exit(0);
+        }
+
+        descText.setText(desc[descCursor++]);
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 100) {
-            if (resultCode == RESULT_OK) {
-                imageView.setVisibility(View.VISIBLE);
-                mBitmap = (Bitmap) data.getExtras().get("data");
-                imageView.setImageBitmap(mBitmap);
-                ready = true;
-                hidden.setVisibility(View.INVISIBLE);
+    public void onBackPressed() {
+        backKeyHandler.onBackPressed();
+    }
+
+    public void goCameramenu() {
+        Intent intent = new Intent(this, AnalysisCameraMenu.class);
+        startActivity(intent);
+        finish();
+    }
+
+    Button.OnClickListener nextEvent = new Button.OnClickListener() {
+        public void onClick(View v)
+        {
+            // descCursor에 맞게 desc를 출력하거나 액티비티 호출.
+            if(descCursor == GO_CAMERA_MENU) {
+                goCameramenu();
+                return;
+            } else if(descCursor < desc.length)
+                descText.setText(desc[descCursor]);
+            else analysisBinding.closeMenu();
+
+            // 뷰 설정 확인
+            emoBtnGroupLayout.setVisibility(View.GONE);
+            reCaptureLayout.setVisibility(View.GONE);
+            nextBtn.setVisibility(View.VISIBLE);
+
+            // desc 출력 외의 설정이 필요할 경우
+            if(descCursor == 2) { // "오늘의 얼굴을 보여주세요!"
+                descCursor = GO_CAMERA_MENU;
+                return;
+            } else if(descCursor == 6) {    // "아니면 사실 다른 기분이신가요?""
+                // 감정 선택 뷰를 나타낸다.
+                emoBtnGroupLayout.setVisibility(View.VISIBLE);
+                nextBtn.setVisibility(View.GONE);
+            } else if(descCursor == 7) {    // "알겠어요"
+                // desc를 끝낸다. 길이보다 높은 인덱스를 줌.
+                descCursor = desc.length;
+                return;
+            } else if(descCursor == 8) {    // "다시 찍어드릴까요?"
+                // 재 촬영 선택 뷰를 나타낸다.
+                reCaptureLayout.setVisibility(View.VISIBLE);
+                nextBtn.setVisibility(View.GONE);
+            } else if (descCursor == 10) {  // "복잡한 기분이신가 봐요.." -> "알겠어요."로 이동.
+                descCursor = 7;
+                return;
+            }
+
+            if(descCursor == 4) {   // "제가 보기엔 ", " 하루셨던 것 같네요."
+                descText.append(emotionResult);
+                descText.append(desc[++descCursor]);
+                if(emotionResult == "복잡한") {
+                    descCursor = 8; // "다시 찍어드릴까요?"
+                    return;
+                }
+            }
+
+            descCursor++;
+        }
+    };
+
+    Button.OnClickListener reCapture = new Button.OnClickListener() {
+        public void onClick(View v)
+        {
+            switch (v.getId()) {
+                case R.id.reCapYesBtn:
+                    goCameramenu();
+                    break;
+                case R.id.reCapNoBtn:
+                    descCursor = 10; // "복잡한 기분이신가 봐요.."
+                    nextEvent.onClick(nextBtn);
+                    break;
+                default:
+                    System.err.println("재 촬영 선택 오류");
+                    System.exit(0);
+                    break;
             }
         }
-    }
+    };
 
-    private void detectandFrame(final Bitmap mBitmap) {
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-        final ByteArrayInputStream inputStream = new ByteArrayInputStream((outputStream.toByteArray()));
-
-        AsyncTask<InputStream, String, Face[]> detectTask = new AsyncTask<InputStream, String, Face[]>() {
-            ProgressDialog pd = new ProgressDialog(AnalysisMenu.this);
-
-            @Override
-            protected Face[] doInBackground(InputStream... inputStreams) {
-
-                publishProgress("감지중...");
-                //This is where you specify the FaceAttributes to detect. You can change this for your own use.
-                FaceServiceClient.FaceAttributeType[] faceAttr = new FaceServiceClient.FaceAttributeType[]{
-                        FaceServiceClient.FaceAttributeType.HeadPose,
-                        FaceServiceClient.FaceAttributeType.Age,
-                        FaceServiceClient.FaceAttributeType.Gender,
-                        FaceServiceClient.FaceAttributeType.Emotion,
-                        FaceServiceClient.FaceAttributeType.FacialHair
-                };
-
-                try {
-                    Face[] result = faceServiceClient.detect(inputStreams[0],
-                            true,
-                            false,
-                            faceAttr);
-
-                    if (result == null) {
-                        publishProgress("아무것도 감지되지 않음");
-                    }
-
-                    publishProgress(String.format("Detection Finished. %d face(s) detected", result.length));
-                    return result;
-                } catch (Exception e) {
-                    publishProgress("감지 실패: " + e.getMessage());
-                    return null;
-                }
+    Button.OnClickListener analysWithAnswer = new Button.OnClickListener() {
+        public void onClick(View v)
+        {
+            switch (v.getId()) {
+                case R.id.happyBtn:
+                case R.id.normalBtn:
+                case R.id.embarrassBtn:
+                case R.id.annoyedBtn:
+                case R.id.anxiousBtn:
+                case R.id.sadBtn:
+                case R.id.complicateBtn:
+                    analysisBinding.analysEmotion(v.getId());
+                case R.id.noBtn:
+                    nextEvent.onClick(nextBtn);
+                    break;
+                default:
+                    System.err.println("감정 선택 오류");
+                    System.exit(0);
+                    break;
             }
+        }
+    };
 
-            @Override
-            protected void onPreExecute() {
-                pd.show();
-            }
-
-            @Override
-            protected void onProgressUpdate(String... values) {
-                pd.setMessage(values[0]);
-            }
-
-            @Override
-            protected void onPostExecute(Face[] faces) {
-                pd.dismiss();
-                Intent intent = new Intent(getApplicationContext(), com.example.t16_capstone.ResultActivity.class);
-                Gson gson = new Gson();
-                String data = gson.toJson(faces);
-                if (faces == null || faces.length == 0) {
-                    makeToast("얼굴이 감지되지 않았습니다.\n사진을 다시 찍으세요");
-                } else {
-                    intent.putExtra("list_faces", data);
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    mBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                    byte[] byteArray = stream.toByteArray();
-
-                    intent.putExtra("image", byteArray);
-                    startActivity(intent);
-                }
-
-            }
-        };
-        detectTask.execute(inputStream);
-    }
-
-    private void makeToast(String s) {
-        Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
-
-    }
 }

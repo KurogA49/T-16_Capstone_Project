@@ -55,7 +55,7 @@ public class Adapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
         if (convertView == null) {
-            view = inflater.inflate(R.layout.listview_layout, null);
+            view = inflater.inflate(R.layout.emotion_analysis, null);
         }
 
         TextView emotionValue;
@@ -92,7 +92,7 @@ public class Adapter extends BaseAdapter {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context, com.example.t16_capstone.EmotionCheck.class);
+                Intent intent = new Intent(context, EmotionCheck.class);
                 intent.putExtra("Emotion", (String) rank.get(rank.size() - 1));
                 context.startActivity(intent);
             }

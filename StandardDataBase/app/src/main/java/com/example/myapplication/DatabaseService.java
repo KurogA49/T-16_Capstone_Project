@@ -1,8 +1,10 @@
 package com.example.myapplication;
 
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 
 class DBOpenHelper extends SQLiteOpenHelper {
@@ -14,7 +16,7 @@ class DBOpenHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE DiaryTable ( Diary TEXT, FaceAnalysResult REAL, FacePhotoPath CHAR(30), SerialId INTEGER PRIMARY KEY);");
         db.execSQL("CREATE TABLE StoryTable ( Story TEXT, StoryViewState INTEGER, RecommandMovie CHAR(20), RecommandMusic CHAR(20), RecommandBook CHAR(20), SerialId INTEGER PRIMARY KEY);");
-        db.execSQL("CREATE TABLE AppSettingTable ( TimeSetting INTEGER, RecordAgreed Boolean);");
+        db.execSQL("CREATE TABLE AppSettingTable ( TimeSetting INTEGER, RecordAgreed Boolean, SerialId INTEGER PRIMARY KEY);");
     }
 
     @Override
@@ -56,25 +58,48 @@ public class DatabaseService {
 
     public void createAppSettingTable() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS AppSettingTable ( TimeSetting INTEGER, RecordAgreed Boolean);");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS AppSettingTable ( TimeSetting INTEGER, RecordAgreed Boolean, SerialId INTEGER PRIMARY KEY);");
         closeDatabase();
     }
 
     public void saveDiaryInfo() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO DiaryTable (Diary, FaceAnalysResult, FacePhotoPath) values (?, ?, ?, ?)", new Object[]{"Today's Diary", 20.3, "Photo's Path", 1});
+        try {
+            writer.execSQL("INSERT INTO DiaryTable (Diary, FaceAnalysResult, FacePhotoPath) values (?, ?, ?, ?)", new Object[]{"Today's Diary", 20.3, "Photo's Path", 1});
+        } catch(SQLException e) {
+            Log.d("please", e.toString());
+
+        }
         closeDatabase();
     }
 
     public void saveStoryInfo(int id) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO StoryTable (Story, StoryViewState, RecommandMovie, RecommandMusic, RecommandBook, SerialId) values (?, ?, ?, ?, ?, ?)", new Object[]{"Nice Story", 14 + (int)(Math.random() * 2), "Very Cool Movie", "Very Graceful Music", "Very Stable Book", id});
+        try {
+            writer.execSQL("INSERT INTO StoryTable (Story, StoryViewState, RecommandMovie, RecommandMusic, RecommandBook, SerialId) values (?, ?, ?, ?, ?, ?)", new Object[]{"Nice Story", 14 + (int)(Math.random() * 2), "Very Cool Movie", "Very Graceful Music", "Very Stable Book", id});
+        } catch (SQLException e) {
+            Log.d("please", e.toString());
+        }
         closeDatabase();
     }
 
-    public void AppSettingInfo(int time, boolean agreed) {
+    public void FirstAppSettingInfo() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("UPDATE AppSettingTable set TimeSetting = ?, RecordAgreed = ?", new Object[]{time, agreed});
+        try {
+            writer.execSQL("INSERT INTO AppSettingTable (TimeSetting, RecordAgreed, SerialId) values (?, ?, ?)", new Object[] {1822, true, 1});
+        } catch(SQLException e) {
+            Log.d("please", e.toString());
+        }
+        closeDatabase();
+    }
+
+    public void updateAppSettingInfo(int newTime, boolean agreed) {
+        SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
+        try {
+            writer.execSQL("UPDATE AppSettingTable set TimeSetting = ?, RecordAgreed = ? WHERE AppSettingTable.SerialId = 1", new Object[]{newTime, agreed});
+        } catch(SQLException e) {
+            Log.d("please", e.toString());
+        }
         closeDatabase();
     }
 
@@ -102,6 +127,13 @@ public class DatabaseService {
     public Cursor getStoryById(int key) {
         SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
         Cursor cursor = reader.rawQuery("SELECT * FROM StoryTable WHERE StoryTable.SerialId = " + Integer.toString(key) +  ";" , null);
+
+        return cursor;
+    }
+
+    public Cursor getTime() {
+        SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
+        Cursor cursor = reader.rawQuery("SELECT TimeSetting FROM AppSettingTable WHERE AppSettingTable.SerialId = 1;", null);
 
         return cursor;
     }

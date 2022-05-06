@@ -54,6 +54,11 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("WrongConstant")
             @Override
             public void onClick(View v) {
+                if(i == 0) {
+                    dbsvs.FirstAppSettingInfo();
+                } else {
+                    dbsvs.updateAppSettingInfo(1822+i, true);
+                }
                 dbsvs.saveStoryInfo(i++);
                 dbsvs.closeDatabase();
                 Toast.makeText(getApplicationContext(),"입력됨",0).show();
@@ -66,18 +71,14 @@ public class MainActivity extends AppCompatActivity {
                 int number = 1;
                 Cursor cursor, cursor2;
 
-                cursor = dbsvs.getStoryKeyByValue(15);
+                cursor = dbsvs.getTime();
 
                 String strNames = "목록 리스트"+"\r\n"+"\r\n";
                 String strNumbers = "수량"+"\r\n"+"\r\n";
                 String strTypes = "종류"+"\r\n"+"\r\n";
 
                 while(cursor.moveToNext()) {
-                    cursor2 = dbsvs.getStoryById(cursor.getInt(0));
-                    cursor2.moveToNext();
-                    strNames += cursor2.getString(2) + "\r\n";
-                    strNumbers += cursor2.getInt(5) + "\r\n";
-                    strTypes += cursor2.getInt(1) + "\r\n";
+                    strNames += cursor.getInt(0) + "\r\n";
                 }
 
                 edtNameResultm.setText(strNames);

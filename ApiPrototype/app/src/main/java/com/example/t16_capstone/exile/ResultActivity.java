@@ -1,3 +1,4 @@
+/*
 package com.example.t16_capstone;
 
 import android.graphics.Bitmap;
@@ -48,3 +49,4 @@ public class ResultActivity extends AppCompatActivity {
 
     }
 }
+ */

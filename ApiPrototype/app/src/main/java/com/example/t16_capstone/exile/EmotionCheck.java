@@ -1,4 +1,4 @@
-package com.example.t16_capstone;
+/*package com.example.t16_capstone;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -69,3 +69,4 @@ public class EmotionCheck extends AppCompatActivity {
         });
     }
 }
+*/

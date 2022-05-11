@@ -1,9 +1,14 @@
 package com.example.t16_capstone;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Arrays;
 import java.nio.file.Path;
+import java.util.Comparator;
 
 class EmotionList implements Comparable<EmotionList> {
     private String emotion;
@@ -33,36 +38,66 @@ class EmotionList implements Comparable<EmotionList> {
     public String getEmotion() {
         return emotion;
     }
+
 }
 
 public class AnalysisBinding {
-    // API APIForAnalysis;
-    private Bitmap photoForAnalysis;
+
     private EmotionList[] faceAnalysResult;
     // anger, contempt, disgust, fear, happiness, neutral, sadness, surprise
     private String emotionResult;
-    private boolean faceCheck;
     private Activity menu;
 
     AnalysisBinding(Activity menu) {
         this.menu = menu;
     }
 
-    String analysFaceWithAPI() {
+    String analysFaceWithAPI(String faces) throws JSONException {
+        // API에서 받아온 JSON데이터를 처리 후 이용합니다.
+        JSONArray jArray = new JSONArray(faces);
+        JSONObject inner_json = jArray.getJSONObject(0);
+        JSONObject faceObject = inner_json.getJSONObject("faceAttributes");
+        JSONObject emotionObject = faceObject.getJSONObject("emotion");
+
         faceAnalysResult = new EmotionList[]{
-                new EmotionList("anger", 0),
-                new EmotionList("contempt", 0),
-                new EmotionList("disgust", 0),
-                new EmotionList("fear", 0),
-                new EmotionList("happiness", 0),
-                new EmotionList("neutral", 0),
-                new EmotionList("sadness", 0),
-                new EmotionList("surprise", 0)
+                new EmotionList("anger", (float) emotionObject.getDouble("anger")),
+                new EmotionList("contempt", (float) emotionObject.getDouble("contempt")),
+                new EmotionList("disgust", (float) emotionObject.getDouble("disgust")),
+                new EmotionList("fear", (float) emotionObject.getDouble("fear")),
+                new EmotionList("happiness", (float) emotionObject.getDouble("happiness")),
+                new EmotionList("neutral", (float) emotionObject.getDouble("neutral")),
+                new EmotionList("sadness", (float) emotionObject.getDouble("sadness")),
+                new EmotionList("surprise", (float) emotionObject.getDouble("surprise"))
         };
         Arrays.sort(faceAnalysResult);
+        System.out.println(faces);
+        System.out.println(faceAnalysResult[faceAnalysResult.length-1].getEmotion() + " " +faceAnalysResult[faceAnalysResult.length-1].getValue());
 
-        if(faceAnalysResult[0].getValue() > 0.5) {
-            switch(faceAnalysResult[0].getEmotion()) {
+        if (faceAnalysResult[faceAnalysResult.length-1].getEmotion() == "neutral") {
+            if (faceAnalysResult[faceAnalysResult.length-1].getValue() >= 0.9) {
+                return "평범한";
+            } else if (faceAnalysResult[faceAnalysResult.length-2].getValue() >= 0.1) {
+                switch (faceAnalysResult[faceAnalysResult.length-2].getEmotion()) {
+                    case "anger":
+                    case "contempt":
+                    case "disgust":
+                        return "기분나쁜";
+                    case "fear":
+                        return "불안한";
+                    case "happiness":
+                        return "기쁜";
+                    case "sadness":
+                        return "슬픈";
+                    case "surprise":
+                        return "당황스런";
+                    default:
+                        System.err.println("감정 결과 오류");
+                        System.exit(0);
+                        return null;
+                }
+            } else return "복잡함";
+        } else {
+            switch (faceAnalysResult[faceAnalysResult.length-1].getEmotion()) {
                 case "anger":
                 case "contempt":
                 case "disgust":
@@ -71,8 +106,6 @@ public class AnalysisBinding {
                     return "불안한";
                 case "happiness":
                     return "기쁜";
-                case "neutral":
-                    return "평범한";
                 case "sadness":
                     return "슬픈";
                 case "surprise":
@@ -82,14 +115,12 @@ public class AnalysisBinding {
                     System.exit(0);
                     return null;
             }
-        } else {
-            return "복잡한";
         }
         // 기쁜, 평범한, 당황스런, 기분나쁜, 불안한, 슬픈, 복잡한
     }
 
     String analysEmotion(int btnId) {
-        switch(btnId) {
+        switch (btnId) {
             case R.id.happyBtn:
                 emotionResult = "기쁜";
                 return "기쁜";

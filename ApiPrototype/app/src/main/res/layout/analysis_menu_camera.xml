@@ -35,18 +35,6 @@
         android:layout_height="match_parent"
         android:layout_weight="1">
 
-        <com.example.t16_capstone.CameraSurfaceView
-            android:id="@+id/surfaceview"
-            android:layout_width="400dp"
-            android:layout_height="400dp"
-            android:layout_gravity="center"
-            android:layout_weight="1"/>
-        <com.example.t16_capstone.SquareImageView
-            android:id="@+id/facialImageView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            />
-
     </FrameLayout>
 
     <!-- 이 부분은 화면 전환을 위한 임시 버튼 -->

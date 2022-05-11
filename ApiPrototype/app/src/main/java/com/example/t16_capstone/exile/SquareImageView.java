@@ -1,3 +1,4 @@
+/*
 package com.example.t16_capstone;
 
 import android.content.Context;
@@ -29,3 +30,4 @@ public class SquareImageView extends AppCompatImageView {
     }
 
 }
+*/

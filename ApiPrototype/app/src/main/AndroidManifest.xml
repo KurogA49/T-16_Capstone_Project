@@ -32,7 +32,6 @@
         </activity>
 
         <activity android:name=".AnalysisMenu" />
-        <activity android:name=".AnalysisCameraMenu" />
 
         <uses-library
             android:name="org.apache.http.legacy"

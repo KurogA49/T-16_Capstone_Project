@@ -1,15 +1,35 @@
 package com.example.t16_capstone;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONException;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class AnalysisMenu extends AppCompatActivity {
 
@@ -26,13 +46,15 @@ public class AnalysisMenu extends AppCompatActivity {
     private String emotionResult = ""; // 기쁜, 평범한, 당황스런, 기분나쁜, 불안한, 슬픈, 복잡한
     private int descCursor;
     private final int GO_CAMERA_MENU = 100;
-    private String[] desc = {"안녕하세요!", "오늘도 사용자님의 얼굴을 보기위해 왔어요.", "오늘의 얼굴을 보여주세요!", // 초기 0 ~ 2
+    private String[] desc = {"안녕하세요!", "오늘도 친구님의 얼굴을 보기위해 왔어요.", "오늘의 얼굴을 보여주세요!", // 초기 0 ~ 2
             "흐으음", "제가 보기엔 ", " 하루셨던 것 같네요.",   // 감정 결과 3 ~ 5
             "아니면 사실 다른 기분이신가요?", "알겠어요.", // 기본 흐름 6 ~ 7
             "다시 찍어드릴까요?", "이번엔 제대로 찍어드릴게요!", "복잡한 기분이신가 봐요.."};  // emotionResult == "복잡한" 일때 8 ~ 10
+    private Bitmap facePhotoBitmap;
 
     // 바인딩 객체 호출
     private AnalysisBinding analysisBinding;
+    private FaceAnalysisAPI faceAnalysisAPI;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,24 +79,31 @@ public class AnalysisMenu extends AppCompatActivity {
         emoBtnGroup[5] = findViewById(R.id.sadBtn);
         emoBtnGroup[6] = findViewById(R.id.complicateBtn);
         emoBtnGroup[7] = findViewById(R.id.noBtn);
-        for(int i=0; i<emoBtnGroup.length; i++)
+        for (int i = 0; i < emoBtnGroup.length; i++)
             emoBtnGroup[i].setOnClickListener(analysWithAnswer);
         emoBtnGroupLayout = findViewById(R.id.emoBtnGroupLayout);
         reCaptureLayout = findViewById(R.id.reCaptureLayout);
 
         analysisBinding = new AnalysisBinding(this);
+        faceAnalysisAPI = new FaceAnalysisAPI(this);
 
         // 선언 끝
 
         Intent intent = getIntent();
         String argv = intent.getStringExtra("Argv");
-        switch(argv) {
+        String faces = intent.getStringExtra("list_faces");
+        switch (argv) {
             case "MainToDesc":      // "안녕하세요!"
                 descCursor = 0;
                 break;
             case "CameraToDesc":    // "흐으음"
+                // API에게 faces값을 받았으므로 바인딩객체에게 전달.
+                try {
+                    emotionResult = analysisBinding.analysFaceWithAPI(faces);
+                } catch (JSONException e) {
+                    System.err.println(e);
+                }
                 descCursor = 3;
-                emotionResult = analysisBinding.analysFaceWithAPI();
                 break;
             default:
                 System.err.println("액티비티 인자 값 오류");
@@ -89,20 +118,86 @@ public class AnalysisMenu extends AppCompatActivity {
         backKeyHandler.onBackPressed();
     }
 
-    public void goCameramenu() {
-        Intent intent = new Intent(this, AnalysisCameraMenu.class);
-        startActivity(intent);
-        finish();
+    private void faceAnalysis() {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((Activity) getApplicationContext(), new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
+        } else {
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            // 버전에 따라 MediaStore.ACTION_IMAGE_CAPTURE 인텐트에 셀피 화면을 띄우도록 하는 코드
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                intent.putExtra("android.intent.extras.LENS_FACING_FRONT", 1);
+            } else {
+                intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
+            }
+            // onActivityResult에 결과 값을 줌
+            startActivityForResult(intent, 100);
+        }
     }
 
+    // 이동한 화면(startActivityForResult(intent, 100);) 화면에서 결과를 전달 받는 메소드
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 100)
+            if (resultCode == RESULT_OK) {
+                // data인자 값을 받아들임. 실질적 이미지는 mBitmap 변수에 담겨있음.
+                facePhotoBitmap = (Bitmap) data.getExtras().get("data");
+                // API에 이미지를 전달함
+                faceAnalysisAPI.faceAnalysis(facePhotoBitmap);
+            }
+
+        //storeImage(facePhotoBitmap);
+    }
+/*
+    private void storeImage(Bitmap image) {
+        File pictureFile = getOutputMediaFile();
+        if (pictureFile == null) {
+            Toast.makeText(this, "사진이 존재 하지 않습니다.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        try {
+            FileOutputStream fos = new FileOutputStream(pictureFile);
+            image.compress(Bitmap.CompressFormat.PNG, 90, fos);
+            fos.close();
+        } catch (FileNotFoundException e) {
+            Toast.makeText(this, "파일을 찾을 수 없습니다.", Toast.LENGTH_LONG).show();
+        } catch (IOException e) {
+        Toast.makeText(this, "Error accessing file.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private  File getOutputMediaFile(){
+        // To be safe, you should check that the SDCard is mounted
+        // using Environment.getExternalStorageState() before doing this.
+        File mediaStorageDir = new File(Environment.getExternalStorageDirectory()
+                + "/Android/data/"
+                + getApplicationContext().getPackageName()
+                + "/Files");
+
+        // This location works best if you want the created images to be shared
+        // between applications and persist after your app has been uninstalled.
+
+        // Create the storage directory if it does not exist
+        if (! mediaStorageDir.exists()){
+            if (! mediaStorageDir.mkdirs()){
+                return null;
+            }
+        }
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("ddMMyyyy_HHmm").format(new Date());
+        File mediaFile;
+        String mImageName="MI_"+ timeStamp +".jpg";
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator + mImageName);
+        return mediaFile;
+    }
+*/
     Button.OnClickListener nextEvent = new Button.OnClickListener() {
-        public void onClick(View v)
-        {
+        public void onClick(View v) {
             // descCursor에 맞게 desc를 출력하거나 액티비티 호출.
-            if(descCursor == GO_CAMERA_MENU) {
-                goCameramenu();
+            if (descCursor == GO_CAMERA_MENU) {
+                faceAnalysis();
                 return;
-            } else if(descCursor < desc.length)
+            } else if (descCursor < desc.length)
                 descText.setText(desc[descCursor]);
             else analysisBinding.closeMenu();
 
@@ -112,18 +207,18 @@ public class AnalysisMenu extends AppCompatActivity {
             nextBtn.setVisibility(View.VISIBLE);
 
             // desc 출력 외의 설정이 필요할 경우
-            if(descCursor == 2) { // "오늘의 얼굴을 보여주세요!"
+            if (descCursor == 2) { // "오늘의 얼굴을 보여주세요!"
                 descCursor = GO_CAMERA_MENU;
                 return;
-            } else if(descCursor == 6) {    // "아니면 사실 다른 기분이신가요?""
+            } else if (descCursor == 6) {    // "아니면 사실 다른 기분이신가요?""
                 // 감정 선택 뷰를 나타낸다.
                 emoBtnGroupLayout.setVisibility(View.VISIBLE);
                 nextBtn.setVisibility(View.GONE);
-            } else if(descCursor == 7) {    // "알겠어요"
+            } else if (descCursor == 7) {    // "알겠어요"
                 // desc를 끝낸다. 길이보다 높은 인덱스를 줌.
                 descCursor = desc.length;
                 return;
-            } else if(descCursor == 8) {    // "다시 찍어드릴까요?"
+            } else if (descCursor == 8) {    // "다시 찍어드릴까요?"
                 // 재 촬영 선택 뷰를 나타낸다.
                 reCaptureLayout.setVisibility(View.VISIBLE);
                 nextBtn.setVisibility(View.GONE);
@@ -132,10 +227,10 @@ public class AnalysisMenu extends AppCompatActivity {
                 return;
             }
 
-            if(descCursor == 4) {   // "제가 보기엔 ", " 하루셨던 것 같네요."
+            if (descCursor == 4) {   // "제가 보기엔 ", " 하루셨던 것 같네요."
                 descText.append(emotionResult);
                 descText.append(desc[++descCursor]);
-                if(emotionResult == "복잡한") {
+                if (emotionResult == "복잡한") {
                     descCursor = 8; // "다시 찍어드릴까요?"
                     return;
                 }
@@ -146,11 +241,10 @@ public class AnalysisMenu extends AppCompatActivity {
     };
 
     Button.OnClickListener reCapture = new Button.OnClickListener() {
-        public void onClick(View v)
-        {
+        public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.reCapYesBtn:
-                    goCameramenu();
+                    faceAnalysis();
                     break;
                 case R.id.reCapNoBtn:
                     descCursor = 10; // "복잡한 기분이신가 봐요.."
@@ -165,8 +259,7 @@ public class AnalysisMenu extends AppCompatActivity {
     };
 
     Button.OnClickListener analysWithAnswer = new Button.OnClickListener() {
-        public void onClick(View v)
-        {
+        public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.happyBtn:
                 case R.id.normalBtn:

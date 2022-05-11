@@ -1,3 +1,4 @@
+/*
 package com.example.t16_capstone;
 
 import android.content.Context;
@@ -41,8 +42,8 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             for (int i = 0; i < numberOfCameras; i++) {
                 Camera.getCameraInfo(i, cameraInfo);
 
-                /* 전면 카메라를 쓸 것인지 후면 카메라를 쓸것인지 설정 시 */
-                /* 전면카메라 사용시 CAMERA_FACING_FRONT 로 조건절 */
+                // 전면 카메라를 쓸 것인지 후면 카메라를 쓸것인지 설정 시
+                // 전면카메라 사용시 CAMERA_FACING_FRONT 로 조건절
                 if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
                     cameraId = i;
             }
@@ -95,3 +96,4 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         }
     }
 }
+*/

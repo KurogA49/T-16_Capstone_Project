@@ -1,3 +1,4 @@
+/*
 package com.example.t16_capstone;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,3 +40,4 @@ public class AnalysisCameraMenu extends AppCompatActivity {
     }
 
 }
+*/

@@ -1,4 +1,4 @@
-package com.example.t16_capstone;
+/*package com.example.t16_capstone;
 
 import android.content.Context;
 import android.content.Intent;
@@ -103,3 +103,4 @@ public class Adapter extends BaseAdapter {
     }
 
 }
+*/

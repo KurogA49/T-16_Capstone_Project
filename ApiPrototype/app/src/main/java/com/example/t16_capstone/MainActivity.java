@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.File;
@@ -19,11 +20,14 @@ import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
+    private Button setting_btn;
+
     private BackKeyHandler backKeyHandler = new BackKeyHandler(this);
     private final int MY_PERMISSIONS_REQUEST_CAMERA = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -50,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
         int permsRequestCode = 200;
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(perms, permsRequestCode);
         }
     }
@@ -71,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         finish(); //액티비티 종료
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {

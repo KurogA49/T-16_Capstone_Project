@@ -32,6 +32,17 @@
         </activity>
 
         <activity android:name=".AnalysisMenu" />
+        <activity android:name=".settingDialog" />
+
+        <receiver
+            android:name=".DeviceBootReceiver"
+            android:enabled="false"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".AlarmReceiver" />
 
         <uses-library
             android:name="org.apache.http.legacy"

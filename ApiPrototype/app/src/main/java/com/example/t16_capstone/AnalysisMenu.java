@@ -32,7 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class AnalysisMenu extends AppCompatActivity {
-
+    public static final String TAG = "MyTag";
     private BackKeyHandler backKeyHandler = new BackKeyHandler(this);
     private TextView descText;
     private ImageButton nextBtn;
@@ -89,6 +89,12 @@ public class AnalysisMenu extends AppCompatActivity {
 
         // 선언 끝
 
+        // Internal storage
+        Log.d(TAG, "Internal private file dir: "
+                + getFilesDir().getAbsolutePath());
+        Log.d(TAG, "Internal private cache dir: "
+                + getCacheDir().getAbsolutePath());
+
         Intent intent = getIntent();
         String argv = intent.getStringExtra("Argv");
         String faces = intent.getStringExtra("list_faces");
@@ -111,6 +117,50 @@ public class AnalysisMenu extends AppCompatActivity {
         }
 
         descText.setText(desc[descCursor++]);
+
+    }
+
+    private void storeImage(Bitmap image) {
+        File pictureFile = getOutputMediaFile();
+        if (pictureFile == null) {
+            Log.d(TAG,
+                    "Error creating media file, check storage permissions: ");// e.getMessage());
+            return;
+        }
+        try {
+            FileOutputStream fos = new FileOutputStream(pictureFile);
+            image.compress(Bitmap.CompressFormat.PNG, 90, fos); // .png 파일로 비트맵 이미지 저장
+            fos.close();
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "File not found: " + e.getMessage());
+        } catch (IOException e) {
+            Log.d(TAG, "Error accessing file: " + e.getMessage());
+        }
+    }
+
+    private File getOutputMediaFile() {
+        // To be safe, you should check that the SDCard is mounted
+        // using Environment.getExternalStorageState() before doing this.
+        File mediaStorageDir = new File(Environment.getExternalStorageDirectory()
+                + "/Android/data/"
+                + getApplicationContext().getPackageName() // com.example.t16_capstone
+                + "/Files");
+
+        // This location works best if you want the created images to be shared
+        // between applications and persist after your app has been uninstalled.
+
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                return null;
+            }
+        }
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("ddMMyyyy_HHmm").format(new Date());
+        File mediaFile;
+        String mImageName = "MI_" + timeStamp + ".jpg"; // 이미지 이름
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator + mImageName);
+        return mediaFile;
     }
 
     @Override
@@ -146,51 +196,11 @@ public class AnalysisMenu extends AppCompatActivity {
                 faceAnalysisAPI.faceAnalysis(facePhotoBitmap);
             }
 
-        //storeImage(facePhotoBitmap);
-    }
-/*
-    private void storeImage(Bitmap image) {
-        File pictureFile = getOutputMediaFile();
-        if (pictureFile == null) {
-            Toast.makeText(this, "사진이 존재 하지 않습니다.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        try {
-            FileOutputStream fos = new FileOutputStream(pictureFile);
-            image.compress(Bitmap.CompressFormat.PNG, 90, fos);
-            fos.close();
-        } catch (FileNotFoundException e) {
-            Toast.makeText(this, "파일을 찾을 수 없습니다.", Toast.LENGTH_LONG).show();
-        } catch (IOException e) {
-        Toast.makeText(this, "Error accessing file.", Toast.LENGTH_LONG).show();
-        }
+        storeImage(facePhotoBitmap);
+
+
     }
 
-    private  File getOutputMediaFile(){
-        // To be safe, you should check that the SDCard is mounted
-        // using Environment.getExternalStorageState() before doing this.
-        File mediaStorageDir = new File(Environment.getExternalStorageDirectory()
-                + "/Android/data/"
-                + getApplicationContext().getPackageName()
-                + "/Files");
-
-        // This location works best if you want the created images to be shared
-        // between applications and persist after your app has been uninstalled.
-
-        // Create the storage directory if it does not exist
-        if (! mediaStorageDir.exists()){
-            if (! mediaStorageDir.mkdirs()){
-                return null;
-            }
-        }
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("ddMMyyyy_HHmm").format(new Date());
-        File mediaFile;
-        String mImageName="MI_"+ timeStamp +".jpg";
-        mediaFile = new File(mediaStorageDir.getPath() + File.separator + mImageName);
-        return mediaFile;
-    }
-*/
     Button.OnClickListener nextEvent = new Button.OnClickListener() {
         public void onClick(View v) {
             // descCursor에 맞게 desc를 출력하거나 액티비티 호출.

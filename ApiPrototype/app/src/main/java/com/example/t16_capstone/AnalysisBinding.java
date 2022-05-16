@@ -1,16 +1,26 @@
 package com.example.t16_capstone;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.os.Environment;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.Date;
 
 class EmotionList implements Comparable<EmotionList> {
+
     private String emotion;
     private float value;
 
@@ -47,6 +57,8 @@ public class AnalysisBinding {
     // anger, contempt, disgust, fear, happiness, neutral, sadness, surprise
     private String emotionResult;
     private Activity menu;
+    private Bitmap facePhotoBitmap;
+    //public static final String TAG = "MyTag";
 
     AnalysisBinding(Activity menu) {
         this.menu = menu;
@@ -71,13 +83,13 @@ public class AnalysisBinding {
         };
         Arrays.sort(faceAnalysResult);
         System.out.println(faces);
-        System.out.println(faceAnalysResult[faceAnalysResult.length-1].getEmotion() + " " +faceAnalysResult[faceAnalysResult.length-1].getValue());
+        System.out.println(faceAnalysResult[faceAnalysResult.length - 1].getEmotion() + " " + faceAnalysResult[faceAnalysResult.length - 1].getValue());
 
-        if (faceAnalysResult[faceAnalysResult.length-1].getEmotion() == "neutral") {
-            if (faceAnalysResult[faceAnalysResult.length-1].getValue() >= 0.9) {
+        if (faceAnalysResult[faceAnalysResult.length - 1].getEmotion() == "neutral") {
+            if (faceAnalysResult[faceAnalysResult.length - 1].getValue() >= 0.9) {
                 return "평범한";
-            } else if (faceAnalysResult[faceAnalysResult.length-2].getValue() >= 0.1) {
-                switch (faceAnalysResult[faceAnalysResult.length-2].getEmotion()) {
+            } else if (faceAnalysResult[faceAnalysResult.length - 2].getValue() >= 0.1) {
+                switch (faceAnalysResult[faceAnalysResult.length - 2].getEmotion()) {
                     case "anger":
                     case "contempt":
                     case "disgust":
@@ -97,7 +109,7 @@ public class AnalysisBinding {
                 }
             } else return "복잡함";
         } else {
-            switch (faceAnalysResult[faceAnalysResult.length-1].getEmotion()) {
+            switch (faceAnalysResult[faceAnalysResult.length - 1].getEmotion()) {
                 case "anger":
                 case "contempt":
                 case "disgust":
@@ -155,10 +167,6 @@ public class AnalysisBinding {
 
     private boolean isFaceChecked() {
         return false;
-    }
-
-    private Path saveFacePhoto() {
-        return null;
     }
 
     private void openCommModel() {

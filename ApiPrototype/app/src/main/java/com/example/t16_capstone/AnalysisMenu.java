@@ -119,7 +119,7 @@ public class AnalysisMenu extends AppCompatActivity {
         descText.setText(desc[descCursor++]);
 
     }
-
+/* 이미지 저장
     private void storeImage(Bitmap image) {
         File pictureFile = getOutputMediaFile();
         if (pictureFile == null) {
@@ -163,6 +163,8 @@ public class AnalysisMenu extends AppCompatActivity {
         return mediaFile;
     }
 
+ */
+
     @Override
     public void onBackPressed() {
         backKeyHandler.onBackPressed();
@@ -196,7 +198,7 @@ public class AnalysisMenu extends AppCompatActivity {
                 faceAnalysisAPI.faceAnalysis(facePhotoBitmap);
             }
 
-        storeImage(facePhotoBitmap);
+       // storeImage(facePhotoBitmap);
 
 
     }

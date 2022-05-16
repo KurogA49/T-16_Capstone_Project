@@ -4,9 +4,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -43,19 +45,22 @@ public class MainActivity extends AppCompatActivity {
         btnInit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dbsvs.DBUpgrade(1, 2);
-                sqlDB = myDBHelper.getWritableDatabase();
-                myDBHelper.onUpgrade(sqlDB,1,2);
-                sqlDB.close();
-                dbsvs.closeDatabase();
+                try {
+                    dbsvs.DBUpgrade(1, 2);;
+                } catch(SQLException e) {
+                    Log.d("please : ", e.toString());
+                }
             }
         });
         btnInsert.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("WrongConstant")
             @Override
             public void onClick(View v) {
-
-                dbsvs.closeDatabase();
+                try {
+                    dbsvs.insertStoryDB(1, "Some Emotion", 0);
+                } catch(SQLException e) {
+                    Log.d("please : ", e.toString());
+                }
                 Toast.makeText(getApplicationContext(),"입력됨",0).show();
             }
         });
@@ -63,21 +68,20 @@ public class MainActivity extends AppCompatActivity {
         btnSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int number = 1;
-                Cursor cursor, cursor2;
+                Cursor cursor;
+                dbsvs.incrementStoryCallCount(1);
+                cursor = dbsvs.getAllStory();
 
-                cursor = dbsvs.getStoryKeyByValue(15);
+
 
                 String strNames = "목록 리스트"+"\r\n"+"\r\n";
                 String strNumbers = "수량"+"\r\n"+"\r\n";
                 String strTypes = "종류"+"\r\n"+"\r\n";
 
                 while(cursor.moveToNext()) {
-                    cursor2 = dbsvs.getStoryById(cursor.getInt(0));
-                    cursor2.moveToNext();
-                    strNames += cursor2.getString(2) + "\r\n";
-                    strNumbers += cursor2.getInt(5) + "\r\n";
-                    strTypes += cursor2.getInt(1) + "\r\n";
+                    strNames += cursor.getInt(0) + "\r\n";
+                    strNumbers += cursor.getString(1) + "\r\n";
+                    strTypes += cursor.getInt(2) + "\r\n";
                 }
 
                 edtNameResultm.setText(strNames);

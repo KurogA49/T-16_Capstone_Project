@@ -1,5 +1,7 @@
 package com.example.myapplication;
 
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -7,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Environment;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -27,14 +31,14 @@ class DBOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE diarydb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhotoPath TEXT);");
-        db.execSQL("CREATE TABLE diarycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, diaryKey INTEGR NOT NULL, diaryContents TEXT, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
-        db.execSQL("CREATE TABLE analysisresultdb ( diaryKey INTEGER PRIMARY KEY, anger REAL, contempt REAL, disgust REAL, fear REAL, happiness REAL, neutral REAL, " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhotoPath TEXT);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS diarycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, diaryKey INTEGR NOT NULL, diaryContents TEXT, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
+        db.execSQL("CREATE TABLE IF NOT EXISTS analysisresultdb ( diaryKey INTEGER PRIMARY KEY, anger REAL, contempt REAL, disgust REAL, fear REAL, happiness REAL, neutral REAL, " +
                                                     "sadness REAL, surprise REAL, emotion TEXT NOT NULL, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
-        db.execSQL("CREATE TABLE storydb ( storyKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, callCount INTEGER NOT NULL);");
-        db.execSQL("CREATE TABLE storycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, storyKey INTEGER NOT NULL, storyContents TEXT, storyViewState INTEGER, storyImageState INTEGER, FOREIGN KEY(storyKey) REFERENCES storydb(storyKey));");
-        db.execSQL("CREATE TABLE recommendeddb ( recommendKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, content TEXT, callCount INTEGER NOT NULL)");
-        db.execSQL("CREATE TABLE appsettingdb ( settingKey INTEGER PRIMARY KEY NOT NULL, timeSetting INTEGER, continuousEmotion TEXT, continuousCount INTEGER);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS storydb ( storyKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, emotionClass TEXT NOT NULL, callCount INTEGER NOT NULL);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS storycontentsdb ( contentKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, storyKey INTEGER NOT NULL, storyContents TEXT, storyViewState INTEGER, storyImageState INTEGER, FOREIGN KEY(storyKey) REFERENCES storydb(storyKey));");
+        db.execSQL("CREATE TABLE IF NOT EXISTS recommendeddb ( recommendKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, emotionClass TEXT NOT NULL, content TEXT, callCount INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS appsettingdb ( settingKey INTEGER PRIMARY KEY NOT NULL, timeSetting INTEGER, continuousEmotion TEXT, continuousCount INTEGER);");
     }
 
     @Override
@@ -51,10 +55,12 @@ class DBOpenHelper extends SQLiteOpenHelper {
 
 public class DatabaseService {
     private DBOpenHelper dbOpenHelper;
-    private Environment Enviroment;
+    private Context context;
 
     public DatabaseService(MainActivity context) {
         dbOpenHelper = new DBOpenHelper(context);
+        this.context = context;
+        context.getResources();
     }
 
     public void dropTable(String option) {
@@ -89,19 +95,19 @@ public class DatabaseService {
 
     public void createStoryDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS storydb ( storyKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, callCount INTEGER NOT NULL);");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS storydb ( storyKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, emotionClass TEXT NOT NULL, callCount INTEGER NOT NULL);");
         closeDatabase(writer);
     }
 
     public void createStoryContentsDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS storycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, storyKey INTEGER NOT NULL, storyContents TEXT, storyViewState INTEGER, storyImageState INTEGER, FOREIGN KEY(storyKey) REFERENCES storydb(storyKey));");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS storycontentsdb ( contentKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, storyKey INTEGER NOT NULL, storyContents TEXT, storyViewState INTEGER, storyImageState INTEGER, FOREIGN KEY(storyKey) REFERENCES storydb(storyKey));");
         closeDatabase(writer);
     }
 
     public void createRecommendedDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS recommendeddb ( recommendKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, content TEXT, callCount INTEGER NOT NULL);");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS recommendeddb ( recommendKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, emotionClass TEXT NOT NULL, content TEXT, callCount INTEGER NOT NULL);");
         closeDatabase(writer);
     }
 
@@ -132,21 +138,21 @@ public class DatabaseService {
         closeDatabase(writer);
     }
 
-    public void insertStoryDB(int sKey, String emoClass, int callCount) {
+    public void insertStoryDB(String emoClass, int callCount) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO storydb (storyKey, emotionClass, callCount) values (?, ?, ?)", new Object[]{sKey, emoClass, callCount});
+        writer.execSQL("INSERT INTO storydb (emotionClass, callCount) values (?, ?)", new Object[]{emoClass, callCount});
         closeDatabase(writer);
     }
 
-    public void insertStoryContentsDB(int cKey, int sKey, String content, int vState, int iState) {
+    public void insertStoryContentsDB(int sKey, String content, int vState, int iState) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO storycontentsdb (contentKey, storyKey, storyContents, storyViewState, storyImageState) values (?, ?, ?, ?, ?)", new Object[]{cKey, sKey, content, vState, iState});
+        writer.execSQL("INSERT INTO storycontentsdb (storyKey, storyContents, storyViewState, storyImageState) values (?, ?, ?, ?)", new Object[]{sKey, content, vState, iState});
         closeDatabase(writer);
     }
 
-    public void insertRecommendedDB(int rKey, String emoClass, String content, int callCount) {
+    public void insertRecommendedDB(String emoClass, String content, int callCount) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO recommendeddb (recommendedKey, emotionClass, content, callCount) values (?, ?, ?, ?)", new Object[]{rKey, emoClass, content, callCount});
+        writer.execSQL("INSERT INTO recommendeddb (emotionClass, content, callCount) values (?, ?, ?)", new Object[]{emoClass, content, callCount});
         closeDatabase(writer);
     }
 
@@ -291,43 +297,65 @@ public class DatabaseService {
 
     /*-------------CSV파일 import 메소드--------------*/
 
-    public void importFile() {
-        String folderPath = "";
-        String filePath = folderPath + "file.csv";
-        SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        Reader file = null;
+    public void imporStorytFile() {
+        AssetManager am = context.getResources().getAssets();
+        InputStream is = null;
+        String str[];
+        BufferedReader br;
         try {
-            file = new FileReader(filePath);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        BufferedReader buffer = new BufferedReader(file);
+            is = am.open("storydb1.csv");
+            br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            br.readLine();
 
-        String line = "";
-        String tableName = "diarydb";
-        String columns = "facePhotoPath";
-        String str1 = "INSERT INTO " + tableName + " (" + columns + ") values (";
-        String str2 = ");";
-
-        try {
-            while ((line = buffer.readLine()) != null) {
-                StringBuilder sb = new StringBuilder(str1);
-                String[] str = line.split(",");
-                sb.append("'" + str[0] + "'");
-                sb.append(str2);
-                writer.execSQL((sb.toString()));
+            String sLine = null;
+            while((sLine = br.readLine()) != null) {
+                str = sLine.split(",");
+                insertStoryDB(str[1], Integer.parseInt(str[2]));
+                System.out.println(str[0] + " " + str[1] + " " + str[2]);
             }
-        } catch(IOException e) {
+
+        } catch(Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void findDirectory() {
+    public void importStoryContentsFile() {
+        AssetManager am = context.getResources().getAssets();
+        InputStream is = null;
+        String str[];
+        BufferedReader br;
         try {
-            File dir = Enviroment.getExternalStorageDirectory();
+            is = am.open("storycontentsdb1.csv");
+            br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            br.readLine();
 
-            Queue<File> directoryFileList = new LinkedList<>();
-            ArrayList<File> inFiles = new ArrayList<File>();
+            String sLine = null;
+            while((sLine = br.readLine()) != null) {
+                str = sLine.split(",");
+                insertStoryContentsDB(Integer.parseInt(str[1]), str[2], Integer.parseInt(str[3]), Integer.parseInt(str[4]));
+            }
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void importRecommendedFile() {
+        AssetManager am = context.getResources().getAssets();
+        InputStream is = null;
+        String str[];
+        BufferedReader br;
+        try {
+            is = am.open("storycontentsdb1.csv");
+            br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            br.readLine();
+
+            String sLine = null;
+            while((sLine = br.readLine()) != null) {
+                str = sLine.split(",");
+                insertRecommendedDB(str[1], str[2], Integer.parseInt(str[3]));
+            }
+
         } catch(Exception e) {
             e.printStackTrace();
         }

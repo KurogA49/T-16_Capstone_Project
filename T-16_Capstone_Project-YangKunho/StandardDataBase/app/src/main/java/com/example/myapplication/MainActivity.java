@@ -15,7 +15,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
-    myDBHelper myDBHelper;
     static DatabaseService dbsvs;
     static MainActivity ma;
     EditText edtName, edtNumber, edtType, edtNameResultm, edtNumberResult, edtTypeResult;
@@ -39,15 +38,14 @@ public class MainActivity extends AppCompatActivity {
         btnInsert = (Button) findViewById(R.id.btnInsert);
         btnSelect = (Button) findViewById(R.id.btnSelect);
 
-
-        myDBHelper = new myDBHelper(this);
         DatabaseService dbsvs = new DatabaseService(this);
+
         btnInit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
-                    dbsvs.DBUpgrade(1, 2);;
-                } catch(SQLException e) {
+                    dbsvs.DBUpgrade(1, 2);
+                } catch (SQLException e) {
                     Log.d("please : ", e.toString());
                 }
             }
@@ -57,11 +55,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    dbsvs.insertStoryDB(1, "Some Emotion", 0);
-                } catch(SQLException e) {
+                    dbsvs.imporStorytFile();
+                    dbsvs.importRecommendedFile();
+                } catch (SQLException e) {
                     Log.d("please : ", e.toString());
                 }
-                Toast.makeText(getApplicationContext(),"입력됨",0).show();
+                Toast.makeText(getApplicationContext(), "입력됨", 0).show();
             }
         });
 
@@ -69,46 +68,28 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Cursor cursor;
-                dbsvs.incrementStoryCallCount(1);
-                cursor = dbsvs.getAllStory();
+                try {
+                    cursor = dbsvs.getAllStory();
 
+                    String strNames = "목록 리스트" + "\r\n" + "\r\n";
+                    String strNumbers = "수량" + "\r\n" + "\r\n";
+                    String strTypes = "종류" + "\r\n" + "\r\n";
 
+                    while (cursor.moveToNext()) {
+                        strNames += cursor.getInt(0) + "\r\n";
+                        strNumbers += cursor.getString(1) + "\r\n";
+                        strTypes += cursor.getInt(2) + "\r\n";
+                    }
 
-                String strNames = "목록 리스트"+"\r\n"+"\r\n";
-                String strNumbers = "수량"+"\r\n"+"\r\n";
-                String strTypes = "종류"+"\r\n"+"\r\n";
-
-                while(cursor.moveToNext()) {
-                    strNames += cursor.getInt(0) + "\r\n";
-                    strNumbers += cursor.getString(1) + "\r\n";
-                    strTypes += cursor.getInt(2) + "\r\n";
+                    edtNameResultm.setText(strNames);
+                    edtNumberResult.setText(strNumbers);
+                    edtTypeResult.setText(strTypes);
+                    cursor.close();
+                } catch(SQLException e) {
+                    Log.d("please : ", e.toString());
                 }
-
-                edtNameResultm.setText(strNames);
-                edtNumberResult.setText(strNumbers);
-                edtTypeResult.setText(strTypes);
-                cursor.close();
-
             }
         });
 
-    }
-
-    public class myDBHelper extends SQLiteOpenHelper {
-        public myDBHelper(Context context) {
-            super(context, "groupDB", null, 1);
-        }
-
-        @Override
-        public void onCreate(SQLiteDatabase db) {
-            db.execSQL("CREATE TABLE groupTBL ( gName CHAR(20) PRIMARY KEY, gNumber INTEGER, gType CHAR(10));");
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            db.execSQL("DROP TABLE IF EXISTS groupTBL");
-            onCreate(db);
-
-        }
     }
 }

@@ -134,6 +134,7 @@ public class AnalysisMenu extends AppCompatActivity {
                 facePhotoBitmap = (Bitmap) data.getExtras().get("data");
                 // API에 이미지를 전달함
                 faceAnalysisAPI.faceAnalysis(facePhotoBitmap);
+                descText.setText("얼굴이 잘 안나오셨네요. 다시 찍어드릴게요!");
             }
     }
 
@@ -146,7 +147,7 @@ public class AnalysisMenu extends AppCompatActivity {
                 return;
             } else if(descCursor < desc.length)
                 descText.setText(desc[descCursor]);
-            else analysisBinding.closeMenu();
+            else analysisBinding.openCommModel();
 
             // 뷰 설정 확인
             emoBtnGroupLayout.setVisibility(View.GONE);
@@ -217,7 +218,7 @@ public class AnalysisMenu extends AppCompatActivity {
                 case R.id.anxiousBtn:
                 case R.id.sadBtn:
                 case R.id.complicateBtn:
-                    analysisBinding.analysEmotion(v.getId());
+                    emotionResult = analysisBinding.analysEmotion(v.getId());
                 case R.id.noBtn:
                     nextEvent.onClick(nextBtn);
                     break;

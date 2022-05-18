@@ -1,6 +1,7 @@
 package com.example.t16_capstone;
 
 import android.app.Activity;
+import android.content.Intent;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -148,21 +149,18 @@ public class AnalysisBinding {
         }
     }
 
-    void closeMenu() {
-        menu.finish();
-        openCommModel();
-    }
-
-    private boolean isFaceChecked() {
-        return false;
-    }
-
     private Path saveFacePhoto() {
         return null;
     }
 
-    private void openCommModel() {
+    public void openCommModel() {
         // emotionResult 값을 전달
+        Intent intent = new Intent(menu, CommunicationMenu.class);
+        intent.putExtra("emotionResult", this.emotionResult);
+        // 화면전환 애니메이션 제거
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        menu.startActivity(intent);
+        menu.finish(); //액티비티 종료
     }
 
 

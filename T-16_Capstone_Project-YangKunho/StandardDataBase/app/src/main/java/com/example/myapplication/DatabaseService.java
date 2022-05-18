@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -35,9 +36,9 @@ class DBOpenHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS diarycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, diaryKey INTEGR NOT NULL, diaryContents TEXT, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
         db.execSQL("CREATE TABLE IF NOT EXISTS analysisresultdb ( diaryKey INTEGER PRIMARY KEY, anger REAL, contempt REAL, disgust REAL, fear REAL, happiness REAL, neutral REAL, " +
                                                     "sadness REAL, surprise REAL, emotion TEXT NOT NULL, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
-        db.execSQL("CREATE TABLE IF NOT EXISTS storydb ( storyKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, emotionClass TEXT NOT NULL, callCount INTEGER NOT NULL);");
-        db.execSQL("CREATE TABLE IF NOT EXISTS storycontentsdb ( contentKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, storyKey INTEGER NOT NULL, storyContents TEXT, storyViewState INTEGER, storyImageState INTEGER, FOREIGN KEY(storyKey) REFERENCES storydb(storyKey));");
-        db.execSQL("CREATE TABLE IF NOT EXISTS recommendeddb ( recommendKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, emotionClass TEXT NOT NULL, content TEXT, callCount INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS storydb ( storyKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, callCount INTEGER NOT NULL);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS storycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, storyKey INTEGER NOT NULL, storyContents TEXT, storyViewState INTEGER, storyImageState INTEGER, FOREIGN KEY(storyKey) REFERENCES storydb(storyKey));");
+        db.execSQL("CREATE TABLE IF NOT EXISTS recommendeddb ( recommendKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, content TEXT, callCount INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS appsettingdb ( settingKey INTEGER PRIMARY KEY NOT NULL, timeSetting INTEGER, continuousEmotion TEXT, continuousCount INTEGER);");
     }
 
@@ -95,19 +96,19 @@ public class DatabaseService {
 
     public void createStoryDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS storydb ( storyKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, emotionClass TEXT NOT NULL, callCount INTEGER NOT NULL);");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS storydb ( storyKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, callCount INTEGER NOT NULL);");
         closeDatabase(writer);
     }
 
     public void createStoryContentsDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS storycontentsdb ( contentKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, storyKey INTEGER NOT NULL, storyContents TEXT, storyViewState INTEGER, storyImageState INTEGER, FOREIGN KEY(storyKey) REFERENCES storydb(storyKey));");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS storycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, storyKey INTEGER NOT NULL, storyContents TEXT, storyViewState INTEGER, storyImageState INTEGER, FOREIGN KEY(storyKey) REFERENCES storydb(storyKey));");
         closeDatabase(writer);
     }
 
     public void createRecommendedDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS recommendeddb ( recommendKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, emotionClass TEXT NOT NULL, content TEXT, callCount INTEGER NOT NULL);");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS recommendeddb ( recommendKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, content TEXT, callCount INTEGER NOT NULL);");
         closeDatabase(writer);
     }
 
@@ -138,21 +139,21 @@ public class DatabaseService {
         closeDatabase(writer);
     }
 
-    public void insertStoryDB(String emoClass, int callCount) {
+    public void insertStoryDB(int sKey, String emoClass, int callCount) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO storydb (emotionClass, callCount) values (?, ?)", new Object[]{emoClass, callCount});
+        writer.execSQL("INSERT INTO storydb (storyKey, emotionClass, callCount) values (?, ?, ?)", new Object[]{sKey, emoClass, callCount});
         closeDatabase(writer);
     }
 
-    public void insertStoryContentsDB(int sKey, String content, int vState, int iState) {
+    public void insertStoryContentsDB(int cKey, int sKey, String content, int vState, int iState) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO storycontentsdb (storyKey, storyContents, storyViewState, storyImageState) values (?, ?, ?, ?)", new Object[]{sKey, content, vState, iState});
+        writer.execSQL("INSERT INTO storycontentsdb (contentKey, storyKey, storyContents, storyViewState, storyImageState) values (?, ?, ?, ?, ?)", new Object[]{cKey, sKey, content, vState, iState});
         closeDatabase(writer);
     }
 
-    public void insertRecommendedDB(String emoClass, String content, int callCount) {
+    public void insertRecommendedDB(int rKey, String emoClass, String content, int callCount) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO recommendeddb (emotionClass, content, callCount) values (?, ?, ?)", new Object[]{emoClass, content, callCount});
+        writer.execSQL("INSERT INTO recommendeddb (recommendKey, emotionClass, content, callCount) values (?, ?, ?, ?)", new Object[]{rKey, emoClass, content, callCount});
         closeDatabase(writer);
     }
 
@@ -199,8 +200,6 @@ public class DatabaseService {
         Cursor cursor = reader.rawQuery("SELECT callCount FROM storydb WHERE storydb.storyKey = " + Integer.toString(sKey), null);
         cursor.moveToNext();
         writer.execSQL("UPDATE storydb set callCount = ? WHERE storydb.storyKey = " + Integer.toString(sKey), new Object[] {cursor.getInt(0) + 1});
-        closeDatabase(writer);
-        closeDatabase(reader);
     }
 
     public void updateStoryContentsDB(int cKey, String contents, int vState, int iState) {
@@ -221,8 +220,6 @@ public class DatabaseService {
         Cursor cursor = reader.rawQuery("SELECT callCount FROM recommendeddb WHERE recommendeddb.recommendKey = " + Integer.toString(rKey), null);
         cursor.moveToNext();
         writer.execSQL("UPDATE recommendeddb set callCount = ? WHERE recommendeddb.recommendKey = " + Integer.toString(rKey), new Object[] {cursor.getInt(0) + 1});
-        closeDatabase(writer);
-        closeDatabase(reader);
     }
 
     public void updateAppSettingDB(int time) {
@@ -274,6 +271,13 @@ public class DatabaseService {
         return cursor;
     }
 
+    public Cursor selectStoryDB(String emoClass) {
+        SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
+        Cursor cursor = reader.rawQuery("SELECT * FROM storydb WHERE storydb.emotionClass = '" + emoClass + "'", null);
+
+        return cursor;
+    }
+
     public Cursor selectStoryContentsDB(int key) {
         SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
         Cursor cursor = reader.rawQuery("SELECT * FROM storycontentsdb WHERE storycontentsdb.storyKey = " + Integer.toString(key), null);
@@ -281,9 +285,16 @@ public class DatabaseService {
         return cursor;
     }
 
-    public Cursor selectRecommendedDB(int key) {
+    public Cursor selectRecommendedDB(int rKey) {
         SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
-        Cursor cursor = reader.rawQuery("SELECT * FROM recommendeddb WHERE recommendeddb.recommendKey = " + Integer.toString(key), null);
+        Cursor cursor = reader.rawQuery("SELECT * FROM recommendeddb WHERE recommendeddb.recommendKey = " + Integer.toString(rKey), null);
+
+        return cursor;
+    }
+
+    public Cursor selectRecommendedDB(String emoClass) {
+        SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
+        Cursor cursor = reader.rawQuery("SELECT * FROM recommendeddb WHERE recommendeddb.recommendKey = '" + emoClass + "'", null);
 
         return cursor;
     }
@@ -297,7 +308,7 @@ public class DatabaseService {
 
     /*-------------CSV파일 import 메소드--------------*/
 
-    public void imporStorytFile() {
+    public void importStoryFile() {
         AssetManager am = context.getResources().getAssets();
         InputStream is = null;
         String str[];
@@ -310,10 +321,11 @@ public class DatabaseService {
             String sLine = null;
             while((sLine = br.readLine()) != null) {
                 str = sLine.split(",");
-                insertStoryDB(str[1], Integer.parseInt(str[2]));
-                System.out.println(str[0] + " " + str[1] + " " + str[2]);
+                insertStoryDB(Integer.parseInt(str[0]), str[1], Integer.parseInt(str[2]));
             }
 
+            is.close();
+            br.close();
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -332,9 +344,11 @@ public class DatabaseService {
             String sLine = null;
             while((sLine = br.readLine()) != null) {
                 str = sLine.split(",");
-                insertStoryContentsDB(Integer.parseInt(str[1]), str[2], Integer.parseInt(str[3]), Integer.parseInt(str[4]));
+                insertStoryContentsDB(Integer.parseInt(str[0]), Integer.parseInt(str[1]), str[2], Integer.parseInt(str[3]), Integer.parseInt(str[4]));
             }
 
+            is.close();
+            br.close();
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -346,18 +360,60 @@ public class DatabaseService {
         String str[];
         BufferedReader br;
         try {
-            is = am.open("storycontentsdb1.csv");
+            is = am.open("recommendeddb1.csv");
             br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
             br.readLine();
 
             String sLine = null;
             while((sLine = br.readLine()) != null) {
                 str = sLine.split(",");
-                insertRecommendedDB(str[1], str[2], Integer.parseInt(str[3]));
+                insertRecommendedDB(Integer.parseInt(str[0]), str[1], str[2], Integer.parseInt(str[3]));
             }
 
+            is.close();
+            br.close();
         } catch(Exception e) {
             e.printStackTrace();
         }
+
     }
+
+    /*-------------특수 select 메소드--------------*/
+
+    public Cursor[] getStoryByEmotionAndRecommend(String emoClass) {
+        Cursor cursor, cursor2, cursor3, cursor4;
+        cursor = selectStoryDB(emoClass);
+
+        int foreignKey;
+        int max = cursor.getCount();
+        max = (int)(Math.random()*max);
+
+        for(int i = 0; i < max+1; i++)
+            cursor.moveToNext();
+
+        try {
+            foreignKey = cursor.getInt(0);
+            incrementStoryCallCount(foreignKey);
+            cursor.close();
+            cursor2 = selectStoryContentsDB(foreignKey);
+        } catch(CursorIndexOutOfBoundsException e) {
+            cursor2 = null;
+        }
+
+        cursor3 = selectRecommendedDB(emoClass);
+        max = cursor3.getCount();
+        max = (int)(Math.random()*max);
+        for(int i = 0; i < max+1; i++)
+            cursor3.moveToNext();
+        try {
+            cursor4 = selectRecommendedDB(cursor3.getInt(0));
+        } catch(CursorIndexOutOfBoundsException e) {
+            e.printStackTrace();
+            cursor4 = null;
+        }
+        cursor3.close();
+
+        return new Cursor[] {cursor2, cursor4};
+    }
+
 }

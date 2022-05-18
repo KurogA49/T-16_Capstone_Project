@@ -12,12 +12,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     static DatabaseService dbsvs;
     static MainActivity ma;
-    EditText edtName, edtNumber, edtType, edtNameResultm, edtNumberResult, edtTypeResult;
+    EditText edtName, edtNumber, edtType;
+    TextView edtNameResultm, edtNumberResult, edtTypeResult;
     Button btnInit, btnInsert, btnSelect;
     SQLiteDatabase sqlDB;
     private int i = 0;
@@ -31,14 +33,17 @@ public class MainActivity extends AppCompatActivity {
         edtName = (EditText) findViewById(R.id.edtName);
         edtNumber = (EditText) findViewById(R.id.edtNumber);
         edtType = (EditText) findViewById(R.id.edtType);
-        edtNameResultm = (EditText) findViewById(R.id.edtNameResult);
-        edtNumberResult = (EditText) findViewById(R.id.edtNumberResult);
-        edtTypeResult = (EditText) findViewById(R.id.edtTypeResult);
+        edtNameResultm = (TextView) findViewById(R.id.edtNameResult);
+        edtNumberResult = (TextView) findViewById(R.id.edtNumberResult);
+        edtTypeResult = (TextView) findViewById(R.id.edtTypeResult);
         btnInit = (Button) findViewById(R.id.btnInit);
         btnInsert = (Button) findViewById(R.id.btnInsert);
         btnSelect = (Button) findViewById(R.id.btnSelect);
 
+
         DatabaseService dbsvs = new DatabaseService(this);
+
+
 
         btnInit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,8 +60,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    dbsvs.imporStorytFile();
                     dbsvs.importRecommendedFile();
+                    dbsvs.importStoryContentsFile();
+                    dbsvs.importStoryFile();
                 } catch (SQLException e) {
                     Log.d("please : ", e.toString());
                 }
@@ -70,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 Cursor cursor;
                 try {
                     cursor = dbsvs.getAllStory();
+                    dbsvs.getStoryByEmotionAndRecommend("평범한");
 
                     String strNames = "목록 리스트" + "\r\n" + "\r\n";
                     String strNumbers = "수량" + "\r\n" + "\r\n";
@@ -91,5 +98,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private class BackRunnable implements  Runnable {
+        Context context;
+        DatabaseService dbsvs;
+        public BackRunnable(Context context) {
+            this.context = context;
+            dbsvs = new DatabaseService((MainActivity) context);
+        }
+        public void run() {
+            dbsvs.importStoryFile();
+            dbsvs.importRecommendedFile();
+            dbsvs.importRecommendedFile();
+        }
     }
 }

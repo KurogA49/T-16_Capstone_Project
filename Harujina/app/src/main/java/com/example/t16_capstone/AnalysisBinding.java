@@ -153,10 +153,10 @@ public class AnalysisBinding {
         return null;
     }
 
-    public void openCommModel() {
+    public void openCommModel(String emotionResult) {
         // emotionResult 값을 전달
         Intent intent = new Intent(menu, CommunicationMenu.class);
-        intent.putExtra("emotionResult", this.emotionResult);
+        intent.putExtra("emotionResult", emotionResult);
         // 화면전환 애니메이션 제거
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         menu.startActivity(intent);

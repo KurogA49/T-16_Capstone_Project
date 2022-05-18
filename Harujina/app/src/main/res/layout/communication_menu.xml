@@ -91,7 +91,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="0.6">
                 <ImageButton
-                    android:id="@+id/nextBtn"
+                    android:id="@+id/nextStoryBtn"
                     android:layout_height="match_parent"
                     android:layout_width="0dp"
                     android:layout_weight="2"
@@ -99,18 +99,20 @@
                     android:background="@null"
                     android:scaleType="fitCenter"
                     android:adjustViewBounds="true"
-                    android:padding="10dp">
+                    android:padding="10dp"
+                    android:visibility="gone">
                 </ImageButton>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/storyEditLayout"
+        android:id="@+id/storyDiaryLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:visibility="gone"
+        >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -119,16 +121,35 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="2">
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-                <!-- 작성 말풍선 포함 -->
-                <EditText
+            android:layout_weight="2"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+                <Button
+                    android:id="@+id/storyDiaryConfirmBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="확인"
+                    android:layout_margin="10dp">
+                </Button>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3">
+                <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
-                </EditText>
-            </FrameLayout>
+                    <!-- 작성 말풍선 포함 -->
+                    <EditText
+                        android:id="@+id/storyDiaryEdit"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                    </EditText>
+                </FrameLayout>
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
@@ -137,6 +158,37 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Yes or No Btn 작성 필요-->
+    <LinearLayout
+        android:id="@+id/answerBtnLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2">
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+                <Button
+                    android:id="@+id/answerYesBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="50dp"
+                    android:text="응"/>
+                <Button
+                    android:id="@+id/answerNoBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="50dp"
+                    android:text="아니"/>
+            </LinearLayout>
+    </LinearLayout>
 
 </FrameLayout>

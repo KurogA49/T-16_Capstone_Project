@@ -147,7 +147,7 @@ public class AnalysisMenu extends AppCompatActivity {
                 return;
             } else if(descCursor < desc.length)
                 descText.setText(desc[descCursor]);
-            else analysisBinding.openCommModel();
+            else analysisBinding.openCommModel(emotionResult);
 
             // 뷰 설정 확인
             emoBtnGroupLayout.setVisibility(View.GONE);

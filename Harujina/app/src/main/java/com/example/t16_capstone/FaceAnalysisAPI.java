@@ -99,7 +99,7 @@ public class FaceAnalysisAPI {
                 Gson gson = new Gson();
                 String data = gson.toJson(faces);
                 if (faces == null || faces.length == 0) {
-                    makeToast("친구님 찾아보는 중...\n사진을 다시 찍어주세요!");
+                    //makeToast("친구님 찾아보는 중...\n사진을 다시 찍어주세요!");
 
                 } else {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);

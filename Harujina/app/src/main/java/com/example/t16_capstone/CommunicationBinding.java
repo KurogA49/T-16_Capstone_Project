@@ -78,10 +78,10 @@ public class CommunicationBinding {
         }
         storyCursor.close();
         // 추천 상호작용
-        while (recommendCursor.moveToNext()){
-            if(recommendCursor == null) {
-                // skip
-            } else {
+        if(recommendCursor == null) {
+            // skip
+        } else {
+            while (recommendCursor.moveToNext()){
                 // 전처리 포함
                 String[] temp = recommendCursor.getString(2).split("#");
                 temp[1] = temp[1] + "(이)라는 " + temp[0] + "에요.";
@@ -92,8 +92,8 @@ public class CommunicationBinding {
                 DBStory.addStory(temp[2], 0, 0);
                 DBStory.addStory("꼭 확인해 보셨음 하네요.", 0, 0);
             }
+            recommendCursor.close();
         }
-        recommendCursor.close();
         // 상담권유 상호작용
         if(checkContinuousEmotion()) {
             for(int i =0; i<recommendCounseling.length; i++)

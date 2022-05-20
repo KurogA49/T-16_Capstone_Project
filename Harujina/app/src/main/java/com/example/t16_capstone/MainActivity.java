@@ -16,11 +16,18 @@ public class MainActivity extends AppCompatActivity {
     private BackKeyHandler backKeyHandler = new BackKeyHandler(this);
     private final int MY_PERMISSIONS_REQUEST_CAMERA = 1001;
 
+    // 데이터베이스 초기화
+    private DatabaseService dbsvs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // db 첫 초기화
+        DatabaseService dbsvs = new DatabaseService(this);
+
+        // 권한 엑세스 함수
         cameraAccess();
     }
 

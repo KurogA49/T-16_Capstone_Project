@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class CommunicationMenu extends AppCompatActivity {
 
+    String emotionResult;
     private StoryContents storyContents;
     private String[] contents;
     private int[] viewStates;
@@ -67,9 +68,9 @@ public class CommunicationMenu extends AppCompatActivity {
 
         // 이전 뷰의 감정 결과를 받아와 바인딩으로 전달
         Intent intent = getIntent();
-        String emotionResult = intent.getStringExtra("emotionResult");
+        emotionResult = intent.getStringExtra("emotionResult");
         storyDescText.setText(emotionResult);
-        communicationBinding = new CommunicationBinding(emotionResult);
+        communicationBinding = new CommunicationBinding(this, emotionResult);
 
         // 스토리 진행
         storyContents = new StoryContents();

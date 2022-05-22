@@ -99,8 +99,8 @@ public class FaceAnalysisAPI {
                 Gson gson = new Gson();
                 String data = gson.toJson(faces);
                 if (faces == null || faces.length == 0) {
-                    //makeToast("친구님 찾아보는 중...\n사진을 다시 찍어주세요!");
-
+                    // 얼굴 인식이 안되었을 경우 분석 메뉴 대사 수정.
+                    ((AnalysisMenu)AnalysisMenu.thisContext).setDescText("얼굴이 잘 안나오셨네요. 다시 찍어드릴게요!");
                 } else {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                     intent.putExtra("list_faces", data);

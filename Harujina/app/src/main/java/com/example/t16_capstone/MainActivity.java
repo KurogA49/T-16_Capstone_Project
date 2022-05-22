@@ -7,14 +7,20 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     private BackKeyHandler backKeyHandler = new BackKeyHandler(this);
     private final int MY_PERMISSIONS_REQUEST_CAMERA = 1001;
+    private ImageView characterMain;
+    private ImageView speechBubbleMain;
 
     // 데이터베이스 초기화
     private DatabaseService dbsvs;
@@ -29,6 +35,15 @@ public class MainActivity extends AppCompatActivity {
 
         // 권한 엑세스 함수
         cameraAccess();
+
+        // 애니메이션
+        characterMain = (ImageView) findViewById(R.id.characterMain);
+        Animation animation = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.floating);
+        characterMain.startAnimation(animation);
+
+        speechBubbleMain = findViewById(R.id.speechBubbleMain);
+        AnimationDrawable animationDrawable = (AnimationDrawable)speechBubbleMain.getBackground();
+        animationDrawable.start();
     }
 
     public void cameraAccess() {

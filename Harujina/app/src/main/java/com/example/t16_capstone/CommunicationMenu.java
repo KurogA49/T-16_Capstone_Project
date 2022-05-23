@@ -3,15 +3,23 @@ package com.example.t16_capstone;
 import static java.lang.System.exit;
 
 import android.content.Intent;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 public class CommunicationMenu extends AppCompatActivity {
 
@@ -26,12 +34,14 @@ public class CommunicationMenu extends AppCompatActivity {
     private TextView storyDescText;
     private LinearLayout answerBtnLayout;
     private LinearLayout storyDiaryLayout;
-    private Button storyDiaryConfirmBtn;
     private Button answerYesBtn;
     private Button answerNoBtn;
     private EditText storyDiaryEdit;
     private ImageButton nextStoryBtn;
     private CommunicationBinding communicationBinding;
+    private ImageView characterComm;
+    private ImageView speechBubbleComm;
+    private Drawable[] drawable;
 
     // 감정 기록에 전달해줄 값들
     private String diaryQuestion;
@@ -56,12 +66,11 @@ public class CommunicationMenu extends AppCompatActivity {
         answerBtnLayout = findViewById(R.id.answerBtnLayout);
         storyDiaryLayout = findViewById(R.id.storyDiaryLayout);
         storyDiaryEdit = findViewById(R.id.storyDiaryEdit);
-        storyDiaryConfirmBtn = findViewById(R.id.storyDiaryConfirmBtn);
         answerYesBtn = findViewById(R.id.answerYesBtn);
         answerNoBtn = findViewById(R.id.answerNoBtn);
         nextStoryBtn = findViewById(R.id.nextStoryBtn);
 
-        storyDiaryConfirmBtn.setOnClickListener(diaryBtnEvent);
+        storyDiaryEdit.setOnEditorActionListener(diaryEditEvent);
         answerYesBtn.setOnClickListener(answerBtnEvent);
         answerNoBtn.setOnClickListener(answerBtnEvent);
         nextStoryBtn.setOnClickListener(nextStoryEvent);
@@ -71,6 +80,31 @@ public class CommunicationMenu extends AppCompatActivity {
         emotionResult = intent.getStringExtra("emotionResult");
         storyDescText.setText(emotionResult);
         communicationBinding = new CommunicationBinding(this, emotionResult);
+
+        // 애니메이션
+        characterComm = findViewById(R.id.characterComm);
+        Animation animation = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.floating);
+        characterComm.startAnimation(animation);
+
+        speechBubbleComm = findViewById(R.id.speechBubbleComm);
+        AnimationDrawable animationDrawable = (AnimationDrawable)speechBubbleComm.getBackground();
+        animationDrawable.start();
+
+        // 캐릭터 이미지 설정
+        drawable = new Drawable[13];
+        drawable[0] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[1] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_1);
+        drawable[2] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_2);
+        drawable[3] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[4] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[5] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[6] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[7] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[8] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[9] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[10] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[11] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[12] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
 
         // 스토리 진행
         storyContents = new StoryContents();
@@ -102,11 +136,16 @@ public class CommunicationMenu extends AppCompatActivity {
         }
     };
 
-    Button.OnClickListener diaryBtnEvent = new Button.OnClickListener() {
-        public void onClick(View v)
+    TextView.OnEditorActionListener diaryEditEvent = new TextView.OnEditorActionListener() {
+        @Override
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event)
         {
-            diaryAnswer = storyDiaryEdit.getText().toString();
-            displayStory();
+            boolean handle = false;
+            if(actionId == EditorInfo.IME_ACTION_DONE) {
+                diaryAnswer = storyDiaryEdit.getText().toString();
+                displayStory();
+            }
+            return handle;
         }
     };
 
@@ -167,35 +206,9 @@ public class CommunicationMenu extends AppCompatActivity {
                     System.err.println("정의되지 않은 viewState.");
                     break;
             }
-            switch(imageStates[storyCursor]) {
-                // 캐릭터 이미지 변환
-                case 0:     // 기본 자세
-                    break;
-                case 1:     // 궁금한 자세
-                    break;
-                case 2:     // 웃는 자세
-                    break;
-                case 3:     // 일기장 들고 있음
-                    break;
-                case 4:     // 기분나쁨
-                    break;
-                case 5:     // 웃픔
-                    break;
-                case 6:     // 불안함
-                    break;
-                case 7:     // 우물쭈물
-                    break;
-                case 8:     // 밝은 표정
-                    break;
-                case 9:     // 기쁨.
-                    break;
-                case 10:    // 슬픔.
-                    break;
-                case 11:    // 당황스러움.
-                    break;
-                case 12:    // 복잡함.
-                    break;
-            }
+            // 캐릭터 이미지 설정
+            characterComm.setImageDrawable(drawable[imageStates[storyCursor]]);
+            // 대사 설정
             storyDescText.setText(contents[storyCursor]);
             storyCursor++;
         } else {

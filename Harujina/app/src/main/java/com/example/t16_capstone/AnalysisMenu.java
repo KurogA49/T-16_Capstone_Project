@@ -6,13 +6,18 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -23,6 +28,7 @@ import org.json.JSONException;
 
 public class AnalysisMenu extends AppCompatActivity {
 
+    public static Context thisContext;
     private BackKeyHandler backKeyHandler = new BackKeyHandler(this);
     private TextView descText;
     private ImageButton nextBtn;
@@ -31,7 +37,11 @@ public class AnalysisMenu extends AppCompatActivity {
     private Button reCapNoBtn;
     private LinearLayout emoBtnGroupLayout;
     private LinearLayout reCaptureLayout;
-    private ImageView character;
+    private ImageView characterDesc;
+    private ImageView speechBubbleDesc;
+    private Animation characterAnim;
+    private Animation viewAnim;
+    private Drawable[] drawable;
 
     private String emotionResult = ""; // 기쁜, 평범한, 당황스런, 기분나쁜, 불안한, 슬픈, 복잡한
     private int descCursor;
@@ -51,8 +61,10 @@ public class AnalysisMenu extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.analysis_menu_desc);
 
+        thisContext = this;
+
         descText = findViewById(R.id.descText);
-        character = findViewById(R.id.character);
+        characterDesc = findViewById(R.id.characterDesc);
         nextBtn = findViewById(R.id.nextBtn);
         nextBtn.setOnClickListener(nextEvent);
 
@@ -79,6 +91,33 @@ public class AnalysisMenu extends AppCompatActivity {
 
         // 선언 끝
 
+        // 애니메이션
+        characterAnim = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.floating);
+        characterDesc.startAnimation(characterAnim);
+
+        speechBubbleDesc = findViewById(R.id.speechBubbleDesc);
+        AnimationDrawable animationDrawable = (AnimationDrawable)speechBubbleDesc.getBackground();
+        animationDrawable.start();
+
+        AnimationDrawable[] animationDrawableEmoBtn = new AnimationDrawable[8];
+        for(int i = 0; i<emoBtnGroup.length; i++) {
+            animationDrawableEmoBtn[i] = (AnimationDrawable) emoBtnGroup[i].getBackground();
+            animationDrawableEmoBtn[i].start();
+        }
+
+        AnimationDrawable[] animationDrawableReCap = new AnimationDrawable[2];
+        animationDrawableReCap[0] = (AnimationDrawable)reCapNoBtn.getBackground();
+        animationDrawableReCap[1] = (AnimationDrawable)reCapYesBtn.getBackground();
+        animationDrawableReCap[0].start();
+        animationDrawableReCap[1].start();
+
+        // 캐릭터 이미지 설정
+        drawable = new Drawable[3];
+        drawable[0] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0); // 기본
+        drawable[1] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_camera); // 카메라 들고있는
+        drawable[2] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_ok); // 카메라 확인하는
+
+        // 화면전환 시 수행
         Intent intent = getIntent();
         String argv = intent.getStringExtra("Argv");
         String faces = intent.getStringExtra("list_faces");
@@ -94,6 +133,8 @@ public class AnalysisMenu extends AppCompatActivity {
                     System.err.println(e);
                 }
                 descCursor = 3;
+                // 캐릭터 이미지 수정
+                characterDesc.setImageDrawable(drawable[2]);
                 break;
             default:
                 System.err.println("액티비티 인자 값 오류");
@@ -134,8 +175,11 @@ public class AnalysisMenu extends AppCompatActivity {
                 facePhotoBitmap = (Bitmap) data.getExtras().get("data");
                 // API에 이미지를 전달함
                 faceAnalysisAPI.faceAnalysis(facePhotoBitmap);
-                descText.setText("얼굴이 잘 안나오셨네요. 다시 찍어드릴게요!");
             }
+    }
+
+    public void setDescText(String s) {
+        descText.setText(s);
     }
 
     Button.OnClickListener nextEvent = new Button.OnClickListener() {
@@ -157,12 +201,26 @@ public class AnalysisMenu extends AppCompatActivity {
             // desc 출력 외의 설정이 필요할 경우
             if(descCursor == 2) { // "오늘의 얼굴을 보여주세요!"
                 descCursor = GO_CAMERA_MENU;
+                // 애니메이션 수정
+                characterAnim = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.floating_stop);
+                characterDesc.startAnimation(characterAnim);
+                // 캐릭터 이미지 수정
+                characterDesc.setImageDrawable(drawable[1]);
                 return;
             } else if(descCursor == 6) {    // "아니면 사실 다른 기분이신가요?""
                 // 감정 선택 뷰를 나타낸다.
                 emoBtnGroupLayout.setVisibility(View.VISIBLE);
+                // 뷰 애니메이션 설정
+                viewAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.view_rise);
+                emoBtnGroupLayout.startAnimation(viewAnim);
+
                 nextBtn.setVisibility(View.GONE);
             } else if(descCursor == 7) {    // "알겠어요"
+                // 애니메이션 수정
+                characterAnim = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.floating_stop);
+                characterDesc.startAnimation(characterAnim);
+                // 캐릭터 이미지 수정
+                characterDesc.setImageDrawable(drawable[2]);
                 // desc를 끝낸다. 길이보다 높은 인덱스를 줌.
                 descCursor = desc.length;
                 return;
@@ -176,6 +234,8 @@ public class AnalysisMenu extends AppCompatActivity {
             }
 
             if(descCursor == 4) {   // "제가 보기엔 ", " 하루셨던 것 같네요."
+                // 기본 이미지로 변경.
+                characterDesc.setImageDrawable(drawable[0]);
                 descText.append(emotionResult);
                 descText.append(desc[++descCursor]);
                 if(emotionResult == "복잡한") {

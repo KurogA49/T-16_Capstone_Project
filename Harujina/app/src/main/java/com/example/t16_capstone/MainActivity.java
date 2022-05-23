@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         settingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), AlarmActivity.class);
+                Intent intent = new Intent(getApplicationContext(), SettingDialog.class);
                 startActivity(intent);
             }
         });

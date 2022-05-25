@@ -26,16 +26,28 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 class DBOpenHelper extends SQLiteOpenHelper {
+<<<<<<< Updated upstream:T-16_Capstone_Project-YangKunho/StandardDataBase/app/src/main/java/com/example/myapplication/DatabaseService.java
     public DBOpenHelper(MainActivity context) {
         super(context, "MainDB", null, 1);
+=======
+    public DBOpenHelper(Context context) {
+        super(context, "MainDB", null, 2);
+>>>>>>> Stashed changes:Harujina/app/src/main/java/com/example/t16_capstone/DatabaseService.java
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+<<<<<<< Updated upstream:T-16_Capstone_Project-YangKunho/StandardDataBase/app/src/main/java/com/example/myapplication/DatabaseService.java
         db.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhotoPath TEXT);");
         db.execSQL("CREATE TABLE IF NOT EXISTS diarycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, diaryKey INTEGR NOT NULL, diaryContents TEXT, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
         db.execSQL("CREATE TABLE IF NOT EXISTS analysisresultdb ( diaryKey INTEGER PRIMARY KEY, anger REAL, contempt REAL, disgust REAL, fear REAL, happiness REAL, neutral REAL, " +
                                                     "sadness REAL, surprise REAL, emotion TEXT NOT NULL, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
+=======
+        db.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhoto BLOB, dayTime DATE);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS diarycontentsdb ( contentKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, diaryKey INTEGR NOT NULL, question TEXT, answer TEXT, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
+        db.execSQL("CREATE TABLE IF NOT EXISTS analysisresultdb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, anger REAL, contempt REAL, disgust REAL, fear REAL, happiness REAL, neutral REAL, " +
+                "sadness REAL, surprise REAL, emotion TEXT NOT NULL, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
+>>>>>>> Stashed changes:Harujina/app/src/main/java/com/example/t16_capstone/DatabaseService.java
         db.execSQL("CREATE TABLE IF NOT EXISTS storydb ( storyKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, callCount INTEGER NOT NULL);");
         db.execSQL("CREATE TABLE IF NOT EXISTS storycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, storyKey INTEGER NOT NULL, storyContents TEXT, storyViewState INTEGER, storyImageState INTEGER, FOREIGN KEY(storyKey) REFERENCES storydb(storyKey));");
         db.execSQL("CREATE TABLE IF NOT EXISTS recommendeddb ( recommendKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, content TEXT, callCount INTEGER NOT NULL)");
@@ -44,9 +56,6 @@ class DBOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS diarydb");
-        db.execSQL("DROP TABLE IF EXISTS diarycontentsdb");
-        db.execSQL("DROP TABLE IF EXISTS analysisresultdb");
         db.execSQL(("DROP TABLE IF EXISTS storydb"));
         db.execSQL(("DROP TABLE IF EXISTS storycontentsdb"));
         db.execSQL(("DROP TABLE IF EXISTS recommendeddb"));
@@ -77,7 +86,11 @@ public class DatabaseService {
 
     public void createDiaryDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
+<<<<<<< Updated upstream:T-16_Capstone_Project-YangKunho/StandardDataBase/app/src/main/java/com/example/myapplication/DatabaseService.java
         writer.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey, INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhotoPath TEXT);");
+=======
+        writer.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey, INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhoto BLOB, dayTime DATE);");
+>>>>>>> Stashed changes:Harujina/app/src/main/java/com/example/t16_capstone/DatabaseService.java
         closeDatabase(writer);
     }
 
@@ -122,7 +135,13 @@ public class DatabaseService {
 
     public void insertDiaryDB(int dKey, String path) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
+<<<<<<< Updated upstream:T-16_Capstone_Project-YangKunho/StandardDataBase/app/src/main/java/com/example/myapplication/DatabaseService.java
         writer.execSQL("INSERT INTO diarydb (FacePhotoPath) values (?)", new Object[]{path});
+=======
+        SQLiteStatement p = writer.compileStatement("INSERT INTO diarydb (facePhoto, dayTime) values (?, datetime('now', 'localtime'))");
+        p.bindBlob(1, photo);
+        p.execute();
+>>>>>>> Stashed changes:Harujina/app/src/main/java/com/example/t16_capstone/DatabaseService.java
         closeDatabase(writer);
     }
 
@@ -171,7 +190,13 @@ public class DatabaseService {
 
     public void updateDiaryDB(int key, String path) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
+<<<<<<< Updated upstream:T-16_Capstone_Project-YangKunho/StandardDataBase/app/src/main/java/com/example/myapplication/DatabaseService.java
         writer.execSQL("UPDATE diarydb set facePhotoPath = ? WHERE diarydb.diaryKey = " + Integer.toString(key), new Object[] {path});
+=======
+        SQLiteStatement p = writer.compileStatement("UPDATE diarydb set facePhoto = ? WHERE diarydb.diaryKey = " + Integer.toString(key));
+        p.bindBlob(1, photo);
+        p.execute();
+>>>>>>> Stashed changes:Harujina/app/src/main/java/com/example/t16_capstone/DatabaseService.java
         closeDatabase(writer);
     }
 
@@ -416,4 +441,34 @@ public class DatabaseService {
         return new Cursor[] {cursor2, cursor4};
     }
 
+<<<<<<< Updated upstream:T-16_Capstone_Project-YangKunho/StandardDataBase/app/src/main/java/com/example/myapplication/DatabaseService.java
+=======
+    public Cursor[] getResultAndDiaryContentsByKey(int Key) {
+        Cursor cursor, cursor2;
+        try {
+            cursor = selectAnalysisResultDB(Key);
+            cursor2 = selectDiaryContentsDB(Key);
+        } catch(CursorIndexOutOfBoundsException e) {
+            e.printStackTrace();
+            cursor = null;
+            cursor2 = null;
+        }
+        return new Cursor[] {cursor, cursor2};
+    }
+
+    /*-------------특수 insert 메소드--------------*/
+
+    public void recordDiaryAndResult(byte[] photo, float[] emo, String emotionList) {
+        SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
+        SQLiteStatement p = writer.compileStatement("INSERT INTO diarydb (facePhoto) values(?)");
+        p.bindBlob(1, photo);
+
+        Cursor cursor = dbOpenHelper.getReadableDatabase().rawQuery("SELECT diaryKey FROM diarydb", null);
+        cursor.moveToLast();
+        diaryKey = cursor.getInt(0);
+
+        writer.execSQL("INSERT INTO analysisresultdb (diaryKey, anger, contempt, disgust, fear, happiness, neutral, sadness, surprise, emotion) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                new Object[] {diaryKey, emo[0], emo[1], emo[2], emo[3], emo[4], emo[5], emo[6], emo[7], emotionList});
+    }
+>>>>>>> Stashed changes:Harujina/app/src/main/java/com/example/t16_capstone/DatabaseService.java
 }

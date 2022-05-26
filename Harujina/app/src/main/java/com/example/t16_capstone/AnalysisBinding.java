@@ -2,22 +2,25 @@ package com.example.t16_capstone;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
-import java.nio.file.Path;
-import java.util.Comparator;
 
 class EmotionList implements Comparable<EmotionList> {
     private String emotion;
     private float value;
+    private SerializableRecordData serializableRecordData;
 
     EmotionList(String emotion, float value) {
         this.emotion = emotion;
         this.value = value;
+        // 다음 액티비티에 이미지, 감정값 전달
+        serializableRecordData = new SerializableRecordData();
     }
 
     @Override
@@ -44,13 +47,18 @@ class EmotionList implements Comparable<EmotionList> {
 
 public class AnalysisBinding {
 
+    private SerializableRecordData serializableRecordData;
+    private byte[] facePhotoData;
     private EmotionList[] faceAnalysResult;
+    private float[] recordAnalysValue;
     // anger, contempt, disgust, fear, happiness, neutral, sadness, surprise
     private String emotionResult;
     private Activity menu;
 
     AnalysisBinding(Activity menu) {
         this.menu = menu;
+        serializableRecordData = new SerializableRecordData();
+        recordAnalysValue = new float[8];
     }
 
     String analysFaceWithAPI(String faces) throws JSONException {
@@ -70,6 +78,11 @@ public class AnalysisBinding {
                 new EmotionList("sadness", (float) emotionObject.getDouble("sadness")),
                 new EmotionList("surprise", (float) emotionObject.getDouble("surprise"))
         };
+        // 우선 감정 기록용 value를 저장해둔다.
+        for(int i = 0; i< faceAnalysResult.length; i++) {
+            recordAnalysValue[i] = faceAnalysResult[i].getValue();
+        }
+        // 감정 분석을 위해 sort
         Arrays.sort(faceAnalysResult);
         System.out.println(faces);
         System.out.println(faceAnalysResult[faceAnalysResult.length-1].getEmotion() + " " +faceAnalysResult[faceAnalysResult.length-1].getValue());
@@ -149,15 +162,19 @@ public class AnalysisBinding {
         }
     }
 
-    private Path saveFacePhoto() {
-        return null;
+    public void setFacePhoto(byte[] facePhotoData) {
+        this.facePhotoData = facePhotoData;
     }
 
     public void openCommModel(String emotionResult) {
-        // emotionResult 값을 전달
+            // 감정 기록 데이터 전달 객체
+        serializableRecordData.setSerialPhoto(facePhotoData);
+        serializableRecordData.setSerialEmotionValue(recordAnalysValue);
+            // emotionResult, 감정 기록 데이터 값을 전달
         Intent intent = new Intent(menu, CommunicationMenu.class);
         intent.putExtra("emotionResult", emotionResult);
-        // 화면전환 애니메이션 제거
+        intent.putExtra("sendRecordData", serializableRecordData);
+            // 화면전환 애니메이션 제거
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         menu.startActivity(intent);
         menu.finish(); //액티비티 종료

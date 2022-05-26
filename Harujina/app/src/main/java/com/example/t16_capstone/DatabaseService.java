@@ -14,14 +14,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 class DBOpenHelper extends SQLiteOpenHelper {
+    // 어플 패치를 할 때 필요시 버전을 올려주세요. 버전을 올리면 스토리 테이블을 삭제 후 다시 적용합니다.
     public DBOpenHelper(Context context) {
-        super(context, "MainDB", null, 1);
+        super(context, "MainDB", null, 2);
     }
 
     //SQLiteOpenHelper는 기존의 DB유무를 확인하고 생성하기 때문에, 덮여쓰일 걱정은 하지않아도 된다.
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhoto BLOB);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhoto BLOB, dayTime DATE);");
         db.execSQL("CREATE TABLE IF NOT EXISTS diarycontentsdb ( contentKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, diaryKey INTEGR NOT NULL, question TEXT, answer TEXT, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
         db.execSQL("CREATE TABLE IF NOT EXISTS analysisresultdb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, anger REAL, contempt REAL, disgust REAL, fear REAL, happiness REAL, neutral REAL, " +
                 "sadness REAL, surprise REAL, emotion TEXT NOT NULL, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
@@ -33,9 +34,6 @@ class DBOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS diarydb");
-        db.execSQL("DROP TABLE IF EXISTS diarycontentsdb");
-        db.execSQL("DROP TABLE IF EXISTS analysisresultdb");
         db.execSQL(("DROP TABLE IF EXISTS storydb"));
         db.execSQL(("DROP TABLE IF EXISTS storycontentsdb"));
         db.execSQL(("DROP TABLE IF EXISTS recommendeddb"));
@@ -73,7 +71,7 @@ public class DatabaseService {
 
     public void createDiaryDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey, INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhoto BLOB);");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey, INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhoto BLOB, dayTime DATE);");
         closeDatabase(writer);
     }
 
@@ -118,8 +116,9 @@ public class DatabaseService {
 
     public void insertDiaryDB(byte[] photo) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        SQLiteStatement p = writer.compileStatement("INSERT INTO diarydb (facePhoto) values (?)");
+        SQLiteStatement p = writer.compileStatement("INSERT INTO diarydb (facePhoto, dayTime) values (?, datetime('now', 'localtime'))");
         p.bindBlob(1, photo);
+        p.execute();
         closeDatabase(writer);
     }
 
@@ -172,6 +171,7 @@ public class DatabaseService {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
         SQLiteStatement p = writer.compileStatement("UPDATE diarydb set facePhoto = ? WHERE diarydb.diaryKey = " + Integer.toString(key));
         p.bindBlob(1, photo);
+        p.execute();
         closeDatabase(writer);
     }
 
@@ -452,15 +452,16 @@ public class DatabaseService {
 
     /*-------------특수 insert 메소드--------------*/
 
-    public void recordDiaryAndResult(byte[] photo, EmotionList[] emo, String emotionList) {
+    public void recordDiaryAndResult(byte[] photo, float[] emo, String emotionList) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
         SQLiteStatement p = writer.compileStatement("INSERT INTO diarydb (facePhoto) values(?)");
         p.bindBlob(1, photo);
-        writer.execSQL("INSERT INTO analysisresultdb (diaryKey, anger, contempt, disgust, fear, happiness, neutral, sadness, surprise, emotion) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                new Object[] {emo[0], emo[1], emo[2], emo[3], emo[4], emo[5], emo[6], emo[7], emotionList});
 
         Cursor cursor = dbOpenHelper.getReadableDatabase().rawQuery("SELECT diaryKey FROM diarydb", null);
         cursor.moveToLast();
         diaryKey = cursor.getInt(0);
+
+        writer.execSQL("INSERT INTO analysisresultdb (diaryKey, anger, contempt, disgust, fear, happiness, neutral, sadness, surprise, emotion) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                new Object[] {diaryKey, emo[0], emo[1], emo[2], emo[3], emo[4], emo[5], emo[6], emo[7], emotionList});
     }
 }

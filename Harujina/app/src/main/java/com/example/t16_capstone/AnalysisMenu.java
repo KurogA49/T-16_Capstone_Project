@@ -61,8 +61,6 @@ public class AnalysisMenu extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.analysis_menu_desc);
 
-        thisContext = this;
-
         descText = findViewById(R.id.descText);
         characterDesc = findViewById(R.id.characterDesc);
         nextBtn = findViewById(R.id.nextBtn);
@@ -88,6 +86,8 @@ public class AnalysisMenu extends AppCompatActivity {
 
         analysisBinding = new AnalysisBinding(this);
         faceAnalysisAPI = new FaceAnalysisAPI(this);
+
+        thisContext = this;
 
         // 선언 끝
 
@@ -121,6 +121,7 @@ public class AnalysisMenu extends AppCompatActivity {
         Intent intent = getIntent();
         String argv = intent.getStringExtra("Argv");
         String faces = intent.getStringExtra("list_faces");
+        SerializableRecordData serializableRecordData = (SerializableRecordData) intent.getSerializableExtra("sendPhotoData");
         switch(argv) {
             case "MainToDesc":      // "안녕하세요!"
                 descCursor = 0;
@@ -132,6 +133,7 @@ public class AnalysisMenu extends AppCompatActivity {
                 } catch (JSONException e) {
                     System.err.println(e);
                 }
+                analysisBinding.setFacePhoto(serializableRecordData.getSerialPhoto());
                 descCursor = 3;
                 // 캐릭터 이미지 수정
                 characterDesc.setImageDrawable(drawable[2]);

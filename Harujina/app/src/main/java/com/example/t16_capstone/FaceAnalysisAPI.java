@@ -102,9 +102,16 @@ public class FaceAnalysisAPI {
                     // 얼굴 인식이 안되었을 경우 분석 메뉴 대사 수정.
                     ((AnalysisMenu)AnalysisMenu.thisContext).setDescText("얼굴이 잘 안나오셨네요. 다시 찍어드릴게요!");
                 } else {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    // 바인딩 객체에 얼굴 사진 저장
+                    SerializableRecordData serializableRecordData = new SerializableRecordData();
+                    byte[] byteData = outputStream.toByteArray();
+                    serializableRecordData.setSerialPhoto(byteData);
+
+                    intent.putExtra("sendPhotoData", serializableRecordData);
                     intent.putExtra("list_faces", data);
                     intent.putExtra("Argv", "CameraToDesc");
+
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                     menu.startActivity(intent);
                     menu.finish();
                 }

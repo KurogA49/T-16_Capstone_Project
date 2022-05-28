@@ -3,6 +3,7 @@ package com.example.t16_capstone;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,7 +49,7 @@ class EmotionList implements Comparable<EmotionList> {
 public class AnalysisBinding {
 
     private SerializableRecordData serializableRecordData;
-    private byte[] facePhotoData;
+    private Uri facePhotoUri;
     private EmotionList[] faceAnalysResult;
     private float[] recordAnalysValue;
     // anger, contempt, disgust, fear, happiness, neutral, sadness, surprise
@@ -162,13 +163,13 @@ public class AnalysisBinding {
         }
     }
 
-    public void setFacePhoto(byte[] facePhotoData) {
-        this.facePhotoData = facePhotoData;
+    public void setFacePhotoUri(Uri facePhotoUri) {
+        this.facePhotoUri = facePhotoUri;
     }
 
     public void openCommModel(String emotionResult) {
             // 감정 기록 데이터 전달 객체
-        serializableRecordData.setSerialPhoto(facePhotoData);
+        serializableRecordData.setSerialPhotoUri(facePhotoUri);
         serializableRecordData.setSerialEmotionValue(recordAnalysValue);
             // emotionResult, 감정 기록 데이터 값을 전달
         Intent intent = new Intent(menu, CommunicationMenu.class);

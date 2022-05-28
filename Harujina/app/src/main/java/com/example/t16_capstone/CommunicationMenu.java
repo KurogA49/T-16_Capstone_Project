@@ -134,6 +134,7 @@ public class CommunicationMenu extends AppCompatActivity {
                     break;
                 case R.id.answerNoBtn:
                     yesOrNo = 1;
+                    diaryQuestion.remove(diaryQuestion.size()-1);
                     displayStory();
                     break;
                 default:

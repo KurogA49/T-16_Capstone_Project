@@ -3,7 +3,14 @@ package com.example.t16_capstone;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.ImageDecoder;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.MediaStore;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -79,7 +86,7 @@ public class CommunicationBinding {
         serializableRecordData = (SerializableRecordData)intent.getSerializableExtra("sendRecordData");
 
         // 감정 기록 객체 생성자로 정보 전달.
-        recordDiary = new RecordDiary(menu, serializableRecordData.getSerialPhoto(), serializableRecordData.getSerialEmotionValue(), emotionResult);
+        recordDiary = new RecordDiary(menu, serializableRecordData.getSerialPhotoUri(), serializableRecordData.getSerialEmotionValue(), emotionResult);
     }
 
     // StoryContents객체에 add를 통해 내용 구분없이 쭉 붙인다.

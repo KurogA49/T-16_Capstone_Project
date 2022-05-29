@@ -52,7 +52,7 @@ public class RecordDiary {
     private Bitmap cropBitmap(Bitmap original) {
         Bitmap result = Bitmap.createBitmap(original
                 , 0 //X 시작위치
-                , original.getHeight() / 4 //Y 시작위치 (원본의 4/1지점)
+                , (original.getHeight() - original.getWidth()) / 2 //Y 시작위치
                 , original.getWidth() // 넓이
                 , original.getWidth()); // 높이 (가로길이 만큼(1024픽셀))
         if (result != original) {

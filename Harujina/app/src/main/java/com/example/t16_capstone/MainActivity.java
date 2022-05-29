@@ -48,20 +48,21 @@ public class MainActivity extends AppCompatActivity {
         AnimationDrawable animationDrawable = (AnimationDrawable) speechBubbleMain.getBackground();
         animationDrawable.start();
 
+        // 원래는 종료되는 버튼임
         ImageButton exitBtn = (ImageButton) findViewById(R.id.exitBtn);
         exitBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), AnalysisMenu.class);
-                intent.putExtra("Argv", "MainToDesc");
+                Intent intent = new Intent(getApplicationContext(), RecordListMenu.class);
                 // 화면전환 애니메이션 제거
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
-                finish(); //액티비티 종료
+                //finish(); //액티비티 종료
             }
         });
 
+        // 원래는 감정 기록 리스트로 가는 버튼임
         ImageButton nextBtn = (ImageButton) findViewById(R.id.nextBtn);
         nextBtn.setOnClickListener(new View.OnClickListener() {
 
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 원래는 세팅 화면으로 가는 버튼임
         ImageButton settingBtn = (ImageButton) findViewById(R.id.settingBtn);
         settingBtn.setOnClickListener(new View.OnClickListener() {
             @Override

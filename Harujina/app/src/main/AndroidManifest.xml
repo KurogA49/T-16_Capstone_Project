@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -34,6 +38,7 @@
         <activity android:name=".SettingDialog" />
         <activity android:name=".AnalysisMenu" />
         <activity android:name=".CommunicationMenu" />
+        <activity android:name=".RecordListMenu"/>
 
         <uses-library
             android:name="org.apache.http.legacy"
@@ -49,6 +54,15 @@
         </receiver>
         <receiver android:name=".AlarmReceiver" />
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.t16_capstone.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
     </application>
 
 </manifest>

@@ -2,6 +2,7 @@ package com.example.t16_capstone;
 
 import static java.lang.System.exit;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
@@ -20,6 +21,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+
+import java.util.ArrayList;
 
 public class CommunicationMenu extends AppCompatActivity {
 
@@ -44,8 +47,9 @@ public class CommunicationMenu extends AppCompatActivity {
     private Drawable[] drawable;
 
     // 감정 기록에 전달해줄 값들
-    private String diaryQuestion;
-    private String diaryAnswer;
+    public static Context thisContext;
+    private ArrayList<String> diaryQuestion;
+    private ArrayList<String> diaryAnswer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +65,9 @@ public class CommunicationMenu extends AppCompatActivity {
         storyCursor = 0;
         storyLength = 0;
         yesOrNo = -1;
+        diaryQuestion = new ArrayList<>();
+        diaryAnswer = new ArrayList<>();
+        thisContext = this;
 
         storyDescText = findViewById(R.id.storyDescText);
         answerBtnLayout = findViewById(R.id.answerBtnLayout);
@@ -75,11 +82,9 @@ public class CommunicationMenu extends AppCompatActivity {
         answerNoBtn.setOnClickListener(answerBtnEvent);
         nextStoryBtn.setOnClickListener(nextStoryEvent);
 
-        // 이전 뷰의 감정 결과를 받아와 바인딩으로 전달
+        // 이전 뷰의 인텐트를 받아와 바인딩으로 전달
         Intent intent = getIntent();
-        emotionResult = intent.getStringExtra("emotionResult");
-        storyDescText.setText(emotionResult);
-        communicationBinding = new CommunicationBinding(this, emotionResult);
+        communicationBinding = new CommunicationBinding(this, intent);
 
         // 애니메이션
         characterComm = findViewById(R.id.characterComm);
@@ -129,6 +134,7 @@ public class CommunicationMenu extends AppCompatActivity {
                     break;
                 case R.id.answerNoBtn:
                     yesOrNo = 1;
+                    diaryQuestion.remove(diaryQuestion.size()-1);
                     displayStory();
                     break;
                 default:
@@ -142,7 +148,7 @@ public class CommunicationMenu extends AppCompatActivity {
         {
             boolean handle = false;
             if(actionId == EditorInfo.IME_ACTION_DONE) {
-                diaryAnswer = storyDiaryEdit.getText().toString();
+                diaryAnswer.add(storyDiaryEdit.getText().toString());
                 displayStory();
             }
             return handle;
@@ -164,7 +170,7 @@ public class CommunicationMenu extends AppCompatActivity {
         if(storyCursor < storyLength) {
             switch(viewStates[storyCursor]/10) {
                 case 7:
-                    diaryQuestion = contents[storyCursor];
+                    diaryQuestion.add(contents[storyCursor]);
                     break;
                 case 8:
                     if(yesOrNo != 0) { // yes가 아니면 스킵
@@ -212,17 +218,13 @@ public class CommunicationMenu extends AppCompatActivity {
             storyDescText.setText(contents[storyCursor]);
             storyCursor++;
         } else {
-            quitComm();
+            communicationBinding.quitComm();
         }
     }
 
-    // 감정 기록을 위한 다이어리 전달
-    private String sendStoryDiary() {
-        return null;
-    }
-
-    private void quitComm() {
-        exit(0);
+    // 감정 기록을 위한 다이어리 반환
+    public ArrayList<String>[] receiveStoryDiary() {
+        return new ArrayList[] {diaryQuestion, diaryAnswer};
     }
 }
 

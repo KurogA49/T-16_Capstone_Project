@@ -1,8 +1,16 @@
 package com.example.t16_capstone;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.ImageDecoder;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.MediaStore;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -45,6 +53,10 @@ class StoryContents {
 }
 
 public class CommunicationBinding {
+
+    private Intent intent;
+    private SerializableRecordData serializableRecordData;
+    private RecordDiary recordDiary;
     private Activity menu;
     private String emotionResult;
     private StoryContents DBStory;
@@ -58,9 +70,11 @@ public class CommunicationBinding {
             "그것이 고통이라도요.", "만약 상담에 가신다면, 일기장을 보여주는 것도 도움이 될거에요.", "나아질 미래를 응원할게요.", "그리고 언제나 자신을 믿을 수 있길 바래요."};
     int[] recommendCounselingImages = {0, 7, 5, 0, 5, 7, 0, 0, 0, 5, 0, 5, 0};
 
-    public CommunicationBinding(Activity menu, String emotionResult) {
+    public CommunicationBinding(Activity menu, Intent intent) {
+        this.intent = intent;
+
         this.menu = menu;
-        this.emotionResult = emotionResult;
+        this.emotionResult = intent.getStringExtra("emotionResult");;
 
         dbsvs = new DatabaseService(menu);
         DBStory = new StoryContents();
@@ -68,6 +82,11 @@ public class CommunicationBinding {
         cursors = dbsvs.getStoryByEmotionAndRecommend(emotionResult);
         storyCursor = cursors[0];
         recommendCursor = cursors[1];
+
+        serializableRecordData = (SerializableRecordData)intent.getSerializableExtra("sendRecordData");
+
+        // 감정 기록 객체 생성자로 정보 전달.
+        recordDiary = new RecordDiary(menu, serializableRecordData.getSerialPhotoUri(), serializableRecordData.getSerialEmotionValue(), emotionResult);
     }
 
     // StoryContents객체에 add를 통해 내용 구분없이 쭉 붙인다.
@@ -107,5 +126,10 @@ public class CommunicationBinding {
     private boolean checkContinuousEmotion() {
         // 부정적 감정이 5일 이상 지속되는지 확인.
         return false;
+    }
+
+    // 감정 기록 후 메인 화면으로 돌아간다.
+    public void quitComm() {
+        recordDiary.saveRecordData();
     }
 }

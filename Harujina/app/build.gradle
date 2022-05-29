@@ -29,8 +29,6 @@ android {
 
 dependencies {
 
-    implementation 'androidx.work:work-runtime:2.7.1'
-
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.microsoft.projectoxford:face:1.4.3'
 

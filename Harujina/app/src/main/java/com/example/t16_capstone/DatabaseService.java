@@ -7,34 +7,38 @@ import android.database.Cursor;
 import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 class DBOpenHelper extends SQLiteOpenHelper {
+    // 어플 패치를 할 때 필요시 버전을 올려주세요. 버전을 올리면 스토리 테이블을 삭제 후 다시 적용합니다.
     public DBOpenHelper(Context context) {
-        super(context, "MainDB", null, 1);
+        super(context, "MainDB", null, 8);
     }
 
     //SQLiteOpenHelper는 기존의 DB유무를 확인하고 생성하기 때문에, 덮여쓰일 걱정은 하지않아도 된다.
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhotoPath TEXT);");
-        db.execSQL("CREATE TABLE IF NOT EXISTS diarycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, diaryKey INTEGR NOT NULL, diaryContents TEXT, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
-        db.execSQL("CREATE TABLE IF NOT EXISTS analysisresultdb ( diaryKey INTEGER PRIMARY KEY, anger REAL, contempt REAL, disgust REAL, fear REAL, happiness REAL, neutral REAL, " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhoto BLOB, dayTime DATE);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS diarycontentsdb ( contentKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, diaryKey INTEGR NOT NULL, question TEXT, answer TEXT, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
+        db.execSQL("CREATE TABLE IF NOT EXISTS analysisresultdb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, anger REAL, contempt REAL, disgust REAL, fear REAL, happiness REAL, neutral REAL, " +
                 "sadness REAL, surprise REAL, emotion TEXT NOT NULL, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
         db.execSQL("CREATE TABLE IF NOT EXISTS storydb ( storyKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, callCount INTEGER NOT NULL);");
         db.execSQL("CREATE TABLE IF NOT EXISTS storycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, storyKey INTEGER NOT NULL, storyContents TEXT, storyViewState INTEGER, storyImageState INTEGER, FOREIGN KEY(storyKey) REFERENCES storydb(storyKey));");
         db.execSQL("CREATE TABLE IF NOT EXISTS recommendeddb ( recommendKey INTEGER PRIMARY KEY NOT NULL, emotionClass TEXT NOT NULL, content TEXT, callCount INTEGER NOT NULL)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS appsettingdb ( settingKey INTEGER PRIMARY KEY NOT NULL, timeSetting INTEGER, continuousEmotion TEXT, continuousCount INTEGER);");
+        db.execSQL("CREATE TABLE IF NOT EXISTS appsettingdb ( settingKey INTEGER PRIMARY KEY NOT NULL, continuousEmotion TEXT, continuousCount INTEGER);");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS diarydb");
-        db.execSQL("DROP TABLE IF EXISTS diarycontentsdb");
-        db.execSQL("DROP TABLE IF EXISTS analysisresultdb");
+        db.execSQL(("DROP TABLE IF EXISTS diarydb"));
+        db.execSQL(("DROP TABLE IF EXISTS diarycontentsdb"));
+        db.execSQL(("DROP TABLE IF EXISTS analysisresultdb"));
+        db.execSQL(("DROP TABLE IF EXISTS appsettingdb"));
+
         db.execSQL(("DROP TABLE IF EXISTS storydb"));
         db.execSQL(("DROP TABLE IF EXISTS storycontentsdb"));
         db.execSQL(("DROP TABLE IF EXISTS recommendeddb"));
@@ -45,6 +49,7 @@ class DBOpenHelper extends SQLiteOpenHelper {
 public class DatabaseService {
     private DBOpenHelper dbOpenHelper;
     private Context context;
+    private int diaryKey;
 
     public DatabaseService(Context context) {
         dbOpenHelper = new DBOpenHelper(context);
@@ -71,19 +76,19 @@ public class DatabaseService {
 
     public void createDiaryDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey, INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhotoPath TEXT);");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS diarydb ( diaryKey, INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, facePhoto BLOB, dayTime DATE);");
         closeDatabase(writer);
     }
 
     public void createDiaryContentsDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS diarycontentsdb ( contentKey INTEGER PRIMARY KEY NOT NULL, diaryKey INTEGR NOT NULL, diaryContents TEXT, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
+        writer.execSQL("CREATE TABLE IF NOT EXISTS diarycontentsdb ( contentKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, diaryKey INTEGR NOT NULL, question TEXT, answer TEXT, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
         closeDatabase(writer);
     }
 
     public void createAnalysisResultDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE IF NOT EXISTS analysisresultdb ( diaryKey INTEGER PRIMARY KEY, anger REAL, contempt REAL, disgust REAL, fear REAL, happiness REAL, neutral REAL, " +
+        writer.execSQL("CREATE TABLE IF NOT EXISTS analysisresultdb ( diaryKey INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, anger REAL, contempt REAL, disgust REAL, fear REAL, happiness REAL, neutral REAL, " +
                 "sadness REAL, surprise REAL, emotion TEXT NOT NULL, FOREIGN KEY(diaryKey) REFERENCES diarydb(diaryKey));");
         closeDatabase(writer);
     }
@@ -108,28 +113,31 @@ public class DatabaseService {
 
     public void createAppSettingDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("CREATE TABLE appsettingdb ( settingKey INTEGER PRIMARY KEY NOT NULL, timeSetting INTEGER, continuousEmotion TEXT, continuousCount INTEGER);");
+        writer.execSQL("CREATE TABLE appsettingdb ( settingKey INTEGER PRIMARY KEY NOT NULL, continuousEmotion TEXT, continuousCount INTEGER);");
         closeDatabase(writer);
     }
 
     /*-------------테이블 삽입 메소드--------------*/
 
-    public void insertDiaryDB(int dKey, String path) {
+    public void insertDiaryDB(byte[] photo) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO diarydb (FacePhotoPath) values (?)", new Object[]{path});
+        SQLiteStatement p = writer.compileStatement("INSERT INTO diarydb (facePhoto, dayTime) values (?, datetime('now', 'localtime'))");
+        p.bindBlob(1, photo);
+        p.execute();
         closeDatabase(writer);
     }
 
-    public void insertDiaryContentsDB(int cKey, int dKey, String content) {
+    //주의사항 : 지역변수 diaryKey 는 초기화되지 않았으므로 recordDiaryAndResult() 메소드를 먼저 사용한 후에 이 메소드를 사용할 것
+    public void insertDiaryContentsDB(String qes, String ans) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO diarycontentsdb (contentKey, diaryKey, diaryContents) values (?, ?, ?)", new Object[]{cKey, dKey, content});
+        writer.execSQL("INSERT INTO diarycontentsdb (diaryKey, question, answer) values (?, ?, ?)", new Object[]{diaryKey, qes, ans});
         closeDatabase(writer);
     }
 
-    public void insertAnalysisResultDB(int dKey, float[] emos, String emotion) {
+    public void insertAnalysisResultDB(float[] emos, String emotion) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO analysisresultdb (diaryKey, anger, contempt, disgust, fear, happiness, neutral, sadness, surprise, emotion) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                new Object[]{dKey, emos[0], emos[1], emos[2], emos[3], emos[4], emos[5], emos[6], emos[7], emotion});
+        writer.execSQL("INSERT INTO analysisresultdb (anger, contempt, disgust, fear, happiness, neutral, sadness, surprise, emotion) values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                new Object[]{emos[0], emos[1], emos[2], emos[3], emos[4], emos[5], emos[6], emos[7], emotion});
         closeDatabase(writer);
     }
 
@@ -154,7 +162,7 @@ public class DatabaseService {
 
     public void insertAppSettingDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO appsettingdb (settingKey, timeSetting, continuousEmotion, continuousCount) values (0, null, null, null)");
+        writer.execSQL("INSERT INTO appsettingdb (settingKey, continuousEmotion, continuousCount) values (0, null, null)");
     }
 
     /*-------------테이블 수정 메소드--------------*/
@@ -164,15 +172,17 @@ public class DatabaseService {
         dbOpenHelper.onUpgrade(writer, oldVersion, newVersion);
     }
 
-    public void updateDiaryDB(int key, String path) {
+    public void updateDiaryDB(int key, byte[] photo) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("UPDATE diarydb set facePhotoPath = ? WHERE diarydb.diaryKey = " + Integer.toString(key), new Object[] {path});
+        SQLiteStatement p = writer.compileStatement("UPDATE diarydb set facePhoto = ? WHERE diarydb.diaryKey = " + Integer.toString(key));
+        p.bindBlob(1, photo);
+        p.execute();
         closeDatabase(writer);
     }
 
-    public void updateDiaryContentsDB(int cKey, String diaryContents) {
+    public void updateDiaryContentsDB(int cKey, int dKey, String qes, String ans) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("UPDATE diarycontentsdb set diaryContents = ? WHERE diarycontentsdb.contentKey = " + Integer.toString(cKey), new Object[] {diaryContents});
+        writer.execSQL("UPDATE diarycontentsdb set diaryKey = ?, question = ?, answer = ? WHERE diarycontentsdb.contentKey = " + Integer.toString(cKey), new Object[] {dKey, qes, ans});
         closeDatabase(writer);
     }
 
@@ -218,12 +228,6 @@ public class DatabaseService {
         writer.execSQL("UPDATE recommendeddb set callCount = ? WHERE recommendeddb.recommendKey = " + Integer.toString(rKey), new Object[] {cursor.getInt(0) + 1});
     }
 
-    public void updateAppSettingDB(int time) {
-        SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("UPDATE appsettingdb set timeSetting = ? WHERE appsettingdb.settingKey = 0", new Object[] {time});
-        closeDatabase(writer);
-    }
-
     public void updateAppSettingDB(String emotion, int count) {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
         writer.execSQL("UPDATE appsettingdb set continuousEmotion = ?, continuousCount = ? WHERE appsettingdb.settingKey = 0", new Object[] {emotion, count});
@@ -239,6 +243,18 @@ public class DatabaseService {
         return cursor;
     }
 
+    public Cursor selectAllDiaryDB() {
+        SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
+        Cursor cursor;
+        try {
+            cursor = reader.rawQuery("SELECT * FROM diarydb", null);
+        } catch(CursorIndexOutOfBoundsException e) {
+            e.printStackTrace();
+            cursor = null;
+        }
+        return cursor;
+    }
+
     public Cursor selectDiaryDB(int key) {
         SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
         Cursor cursor = reader.rawQuery("SELECT * FROM diarydb WHERE diarydb.diaryKey = " + Integer.toString(key), null);
@@ -248,7 +264,7 @@ public class DatabaseService {
 
     public Cursor selectDiaryContentsDB(int key) {
         SQLiteDatabase reader = dbOpenHelper.getReadableDatabase();
-        Cursor cursor = reader.rawQuery("SELECT * FROM diarycontentsdb WHERE diarydb.diaryKey = " + Integer.toString(key), null);
+        Cursor cursor = reader.rawQuery("SELECT * FROM diarycontentsdb WHERE diarycontentsdb.diaryKey = " + Integer.toString(key), null);
 
         return cursor;
     }
@@ -383,7 +399,6 @@ public class DatabaseService {
     /*-------------특수 select 메소드--------------*/
 
     public Cursor[] getStoryByEmotionAndRecommend(String emoClass) {
-        System.out.println("메소드 시작됨");
         Cursor cursor, cursor2, cursor3, cursor4;
         cursor = selectStoryDB(emoClass);
 
@@ -416,8 +431,35 @@ public class DatabaseService {
         }
         cursor3.close();
 
-        System.out.println("메소드 끝남");
         return new Cursor[] {cursor2, cursor4};
     }
 
+    public Cursor[] getResultAndDiaryContentsByKey(int Key) {
+        Cursor cursor, cursor2;
+        try {
+            cursor = selectAnalysisResultDB(Key);
+            cursor2 = selectDiaryContentsDB(Key);
+        } catch(CursorIndexOutOfBoundsException e) {
+            e.printStackTrace();
+            cursor = null;
+            cursor2 = null;
+        }
+        return new Cursor[] {cursor, cursor2};
+    }
+
+    /*-------------특수 insert 메소드--------------*/
+
+    public void recordDiaryAndResult(byte[] photo, float[] emo, String emotionResult) {
+        SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
+        SQLiteStatement p = writer.compileStatement("INSERT INTO diarydb (facePhoto, dayTime) values (?, datetime('now', 'localtime'))");
+        p.bindBlob(1, photo);
+        p.execute();
+
+        Cursor cursor = dbOpenHelper.getReadableDatabase().rawQuery("SELECT diaryKey FROM diarydb", null);
+        cursor.moveToLast();
+        diaryKey = cursor.getInt(0);
+
+        writer.execSQL("INSERT INTO analysisresultdb (diaryKey, anger, contempt, disgust, fear, happiness, neutral, sadness, surprise, emotion) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                new Object[] {diaryKey, emo[0], emo[1], emo[2], emo[3], emo[4], emo[5], emo[6], emo[7], emotionResult});
+    }
 }

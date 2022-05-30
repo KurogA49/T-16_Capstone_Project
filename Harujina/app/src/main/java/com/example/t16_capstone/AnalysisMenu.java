@@ -3,6 +3,7 @@ package com.example.t16_capstone;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.app.Activity;
@@ -10,10 +11,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.ImageDecoder;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 import android.view.animation.Animation;
@@ -25,6 +29,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.json.JSONException;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class AnalysisMenu extends AppCompatActivity {
 
@@ -61,8 +71,6 @@ public class AnalysisMenu extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.analysis_menu_desc);
 
-        thisContext = this;
-
         descText = findViewById(R.id.descText);
         characterDesc = findViewById(R.id.characterDesc);
         nextBtn = findViewById(R.id.nextBtn);
@@ -88,6 +96,8 @@ public class AnalysisMenu extends AppCompatActivity {
 
         analysisBinding = new AnalysisBinding(this);
         faceAnalysisAPI = new FaceAnalysisAPI(this);
+
+        thisContext = this;
 
         // 선언 끝
 
@@ -121,6 +131,7 @@ public class AnalysisMenu extends AppCompatActivity {
         Intent intent = getIntent();
         String argv = intent.getStringExtra("Argv");
         String faces = intent.getStringExtra("list_faces");
+        SerializableRecordData serializableRecordData = (SerializableRecordData) intent.getSerializableExtra("sendPhotoData");
         switch(argv) {
             case "MainToDesc":      // "안녕하세요!"
                 descCursor = 0;
@@ -132,6 +143,7 @@ public class AnalysisMenu extends AppCompatActivity {
                 } catch (JSONException e) {
                     System.err.println(e);
                 }
+                analysisBinding.setFacePhotoUri(serializableRecordData.getSerialPhotoUri());
                 descCursor = 3;
                 // 캐릭터 이미지 수정
                 characterDesc.setImageDrawable(drawable[2]);
@@ -149,19 +161,49 @@ public class AnalysisMenu extends AppCompatActivity {
         backKeyHandler.onBackPressed();
     }
 
+    // ImageFile의 경로를 가져올 메서드 선언
+    private File createImageFile() throws IOException {
+        // 파일이름을 세팅 및 저장경로 세팅
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,
+                ".jpg",
+                storageDir
+        );
+
+        return image;
+    }
+
+    Uri photoUri;
     private void faceAnalysis() {
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions((Activity) getApplicationContext(), new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         } else {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
             // 버전에 따라 MediaStore.ACTION_IMAGE_CAPTURE 인텐트에 셀피 화면을 띄우도록 하는 코드
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
                 intent.putExtra("android.intent.extras.LENS_FACING_FRONT", 1);
             } else {
                 intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
             }
-            // onActivityResult에 결과 값을 줌
-            startActivityForResult(intent, 100);
+
+            // 원본 이미지 저장 후, 호출하여 원본 해상도의 이미지를 사용
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                System.err.println(ex);
+            }
+
+            if(photoFile != null) {
+                photoUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", photoFile);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                // onActivityResult에 결과 값을 줌
+                startActivityForResult(intent, 100);
+            }
         }
     }
 
@@ -171,10 +213,8 @@ public class AnalysisMenu extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100)
             if (resultCode == RESULT_OK) {
-                // data인자 값을 받아들임. 실질적 이미지는 mBitmap 변수에 담겨있음.
-                facePhotoBitmap = (Bitmap) data.getExtras().get("data");
                 // API에 이미지를 전달함
-                faceAnalysisAPI.faceAnalysis(facePhotoBitmap);
+                faceAnalysisAPI.faceAnalysis(photoUri);
             }
     }
 

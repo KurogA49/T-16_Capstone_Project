@@ -7,7 +7,12 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageDecoder;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.provider.MediaStore;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -17,6 +22,7 @@ import com.microsoft.projectoxford.face.contract.Face;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 public class FaceAnalysisAPI {
@@ -38,13 +44,38 @@ public class FaceAnalysisAPI {
         return faceAnalysResult;
     }
 
-    // 감정 값 화면 이동 메소드
-    public void faceAnalysis(final Bitmap mBitmap) {
+    // 감정 속도 향상을 위한 리사이징 메소드
+    private Bitmap resizeBitmap(Bitmap original, int resizeWidth) {
+        double aspectRatio = (double) original.getHeight() / (double) original.getWidth();
+        int targetHeight = (int) (resizeWidth * aspectRatio);
+        Bitmap result = Bitmap.createScaledBitmap(original, resizeWidth, targetHeight, false);
+        if (result != original) {
+            original.recycle();
+        }
+        return result;
+    }
 
+    // 감정 값 화면 이동 메소드
+    public void faceAnalysis(Uri photoUri) {
+        Bitmap mBitmap = null;
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                mBitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(menu.getContentResolver(), photoUri));
+            } else {
+                mBitmap = MediaStore.Images.Media.getBitmap(menu.getContentResolver(), photoUri);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mBitmap = resizeBitmap(mBitmap, 1024);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         // mBitmap을 JPEG로 압축
         mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-        final ByteArrayInputStream inputStream = new ByteArrayInputStream((outputStream.toByteArray()));
+        byte[] photoByteData = outputStream.toByteArray();
+
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream((photoByteData));
 
         // 비동기 작업을 위한 메소드. 다른 스레드에서 진행되므로 이 메소드는 순차대로 진행되지 않는다.
         AsyncTask<InputStream, String, Face[]> detectTask = new AsyncTask<InputStream, String, Face[]>() {
@@ -102,9 +133,15 @@ public class FaceAnalysisAPI {
                     // 얼굴 인식이 안되었을 경우 분석 메뉴 대사 수정.
                     ((AnalysisMenu)AnalysisMenu.thisContext).setDescText("얼굴이 잘 안나오셨네요. 다시 찍어드릴게요!");
                 } else {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    // 바인딩 객체에 얼굴 사진 저장
+                    SerializableRecordData serializableRecordData = new SerializableRecordData();
+                    serializableRecordData.setSerialPhotoUri(photoUri);
+
+                    intent.putExtra("sendPhotoData", serializableRecordData);
                     intent.putExtra("list_faces", data);
                     intent.putExtra("Argv", "CameraToDesc");
+
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                     menu.startActivity(intent);
                     menu.finish();
                 }

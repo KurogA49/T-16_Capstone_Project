@@ -1,10 +1,12 @@
 package com.example.t16_capstone;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.AnimationDrawable;
@@ -48,20 +50,35 @@ public class MainActivity extends AppCompatActivity {
         AnimationDrawable animationDrawable = (AnimationDrawable) speechBubbleMain.getBackground();
         animationDrawable.start();
 
+        // 종료 버튼
         ImageButton exitBtn = (ImageButton) findViewById(R.id.exitBtn);
         exitBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), AnalysisMenu.class);
-                intent.putExtra("Argv", "MainToDesc");
-                // 화면전환 애니메이션 제거
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivity(intent);
-                finish(); //액티비티 종료
+            public void onClick(View v){
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage("정말로 종료하시겠습니까?");
+                builder.setTitle("종료 알림창")
+                        .setCancelable(false)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int i) {
+                                finish();
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int i) {
+                                dialog.cancel();
+                            }
+                        });
+                AlertDialog alert = builder.create();
+                alert.setTitle("종료 알림창");
+                alert.show();
             }
         });
 
+        // 원래는 감정 기록 리스트로 가는 버튼임
         ImageButton nextBtn = (ImageButton) findViewById(R.id.nextBtn);
         nextBtn.setOnClickListener(new View.OnClickListener() {
 
@@ -76,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 원래는 세팅 화면으로 가는 버튼임
         ImageButton settingBtn = (ImageButton) findViewById(R.id.settingBtn);
         settingBtn.setOnClickListener(new View.OnClickListener() {
             @Override

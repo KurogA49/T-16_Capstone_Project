@@ -1,6 +1,7 @@
 package com.example.t16_capstone;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -150,6 +151,10 @@ public class AnalysisMenu extends AppCompatActivity {
                 // 캐릭터 이미지 수정
                 characterDesc.setImageDrawable(drawable[2]);
                 break;
+            case "PhotoURINull":      // "찍는 도중 카메라를 돌리면 제가 어지러워요...! \n 다시 한번 사진 부탁드릴게요!"
+                descText.setText("찍는 도중 카메라를 돌리면 제가 어지러워요...!\n다시 한번 사진 부탁드릴게요!");
+                descCursor = GO_CAMERA_MENU;
+                return;// onCreate종료
             default:
                 System.err.println("액티비티 인자 값 오류");
                 System.exit(0);
@@ -217,7 +222,7 @@ public class AnalysisMenu extends AppCompatActivity {
 
     // 이동한 화면(startActivityForResult(intent, 100);) 화면에서 결과를 전달 받는 메소드
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100)
             if (resultCode == RESULT_OK) {

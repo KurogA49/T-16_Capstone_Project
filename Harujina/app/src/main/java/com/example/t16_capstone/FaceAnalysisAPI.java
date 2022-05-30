@@ -70,6 +70,16 @@ public class FaceAnalysisAPI {
     public void faceAnalysis(Uri photoUri) {
         Bitmap mBitmap = null;
 
+        if(photoUri == null) {
+            Intent intent = new Intent(menu, AnalysisMenu.class);
+            intent.putExtra("Argv", "PhotoURINull");
+
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            menu.startActivity(intent);
+            menu.finish();
+            return;
+        }
+
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 mBitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(menu.getContentResolver(), photoUri));
@@ -81,6 +91,7 @@ public class FaceAnalysisAPI {
         }
 
         mBitmap = resizeBitmap(mBitmap, 1024);
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         // mBitmap을 JPEG로 압축
         mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);

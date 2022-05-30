@@ -50,21 +50,43 @@ public class RecordDiary {
     }
 
     private Bitmap cropBitmap(Bitmap original) {
-        Bitmap result = Bitmap.createBitmap(original
-                , 0 //X 시작위치
-                , (original.getHeight() - original.getWidth()) / 2 //Y 시작위치
-                , original.getWidth() // 넓이
-                , original.getWidth()); // 높이 (가로길이 만큼(1024픽셀))
+        Bitmap result = null;
+        if(original.getHeight() >= original.getWidth()) {
+            result = Bitmap.createBitmap(original
+                    , 0 //X 시작위치
+                    , (original.getHeight() - original.getWidth()) / 2 //Y 시작위치
+                    , original.getWidth() // 넓이
+                    , original.getWidth()); // 높이 (가로길이 만큼(1024픽셀))
+        } else {
+            result = Bitmap.createBitmap(original
+                    , (original.getWidth() - original.getHeight()) / 2 //X 시작위치
+                    , 0 //Y 시작위치
+                    , original.getHeight() // 넓이
+                    , original.getHeight()); // 높이 (가로길이 만큼(1024픽셀))
+        }
+
+
         if (result != original) {
             original.recycle();
         }
         return result;
     }
 
-    private Bitmap resizeBitmap(Bitmap original, int resizeWidth) {
-        double aspectRatio = (double) original.getHeight() / (double) original.getWidth();
-        int targetHeight = (int) (resizeWidth * aspectRatio);
-        Bitmap result = Bitmap.createScaledBitmap(original, resizeWidth, targetHeight, false);
+    private Bitmap resizeBitmap(Bitmap original, int resize) {
+        double aspectRatio = 0;
+        int targetHeight = 0;
+        int targetWidth = 0;
+        Bitmap result = null;
+        if(original.getHeight() >= original.getWidth()) {
+            aspectRatio = (double) original.getHeight() / (double) original.getWidth();
+            targetHeight = (int) (resize * aspectRatio);
+            result = Bitmap.createScaledBitmap(original, resize, targetHeight, false);
+        } else {
+            aspectRatio = (double) original.getWidth() / (double) original.getHeight();
+            targetWidth = (int) (resize * aspectRatio);
+            result = Bitmap.createScaledBitmap(original, targetWidth, resize, false);
+        }
+
         if (result != original) {
             original.recycle();
         }

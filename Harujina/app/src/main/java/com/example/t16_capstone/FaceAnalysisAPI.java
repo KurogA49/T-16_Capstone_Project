@@ -45,10 +45,21 @@ public class FaceAnalysisAPI {
     }
 
     // 감정 속도 향상을 위한 리사이징 메소드
-    private Bitmap resizeBitmap(Bitmap original, int resizeWidth) {
-        double aspectRatio = (double) original.getHeight() / (double) original.getWidth();
-        int targetHeight = (int) (resizeWidth * aspectRatio);
-        Bitmap result = Bitmap.createScaledBitmap(original, resizeWidth, targetHeight, false);
+    private Bitmap resizeBitmap(Bitmap original, int resize) {
+        double aspectRatio = 0;
+        int targetHeight = 0;
+        int targetWidth = 0;
+        Bitmap result = null;
+        if(original.getHeight() >= original.getWidth()) {
+            aspectRatio = (double) original.getHeight() / (double) original.getWidth();
+            targetHeight = (int) (resize * aspectRatio);
+            result = Bitmap.createScaledBitmap(original, resize, targetHeight, false);
+        } else {
+            aspectRatio = (double) original.getWidth() / (double) original.getHeight();
+            targetWidth = (int) (resize * aspectRatio);
+            result = Bitmap.createScaledBitmap(original, targetWidth, resize, false);
+        }
+
         if (result != original) {
             original.recycle();
         }

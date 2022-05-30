@@ -1,5 +1,6 @@
 package com.example.t16_capstone;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -10,6 +11,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.ImageDecoder;
 import android.graphics.drawable.AnimationDrawable;
@@ -89,7 +91,7 @@ public class AnalysisMenu extends AppCompatActivity {
         emoBtnGroup[5] = findViewById(R.id.sadBtn);
         emoBtnGroup[6] = findViewById(R.id.complicateBtn);
         emoBtnGroup[7] = findViewById(R.id.noBtn);
-        for(int i=0; i<emoBtnGroup.length; i++)
+        for (int i = 0; i < emoBtnGroup.length; i++)
             emoBtnGroup[i].setOnClickListener(analysWithAnswer);
         emoBtnGroupLayout = findViewById(R.id.emoBtnGroupLayout);
         reCaptureLayout = findViewById(R.id.reCaptureLayout);
@@ -102,22 +104,22 @@ public class AnalysisMenu extends AppCompatActivity {
         // 선언 끝
 
         // 애니메이션
-        characterAnim = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.floating);
+        characterAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.floating);
         characterDesc.startAnimation(characterAnim);
 
         speechBubbleDesc = findViewById(R.id.speechBubbleDesc);
-        AnimationDrawable animationDrawable = (AnimationDrawable)speechBubbleDesc.getBackground();
+        AnimationDrawable animationDrawable = (AnimationDrawable) speechBubbleDesc.getBackground();
         animationDrawable.start();
 
         AnimationDrawable[] animationDrawableEmoBtn = new AnimationDrawable[8];
-        for(int i = 0; i<emoBtnGroup.length; i++) {
+        for (int i = 0; i < emoBtnGroup.length; i++) {
             animationDrawableEmoBtn[i] = (AnimationDrawable) emoBtnGroup[i].getBackground();
             animationDrawableEmoBtn[i].start();
         }
 
         AnimationDrawable[] animationDrawableReCap = new AnimationDrawable[2];
-        animationDrawableReCap[0] = (AnimationDrawable)reCapNoBtn.getBackground();
-        animationDrawableReCap[1] = (AnimationDrawable)reCapYesBtn.getBackground();
+        animationDrawableReCap[0] = (AnimationDrawable) reCapNoBtn.getBackground();
+        animationDrawableReCap[1] = (AnimationDrawable) reCapYesBtn.getBackground();
         animationDrawableReCap[0].start();
         animationDrawableReCap[1].start();
 
@@ -132,7 +134,7 @@ public class AnalysisMenu extends AppCompatActivity {
         String argv = intent.getStringExtra("Argv");
         String faces = intent.getStringExtra("list_faces");
         SerializableRecordData serializableRecordData = (SerializableRecordData) intent.getSerializableExtra("sendPhotoData");
-        switch(argv) {
+        switch (argv) {
             case "MainToDesc":      // "안녕하세요!"
                 descCursor = 0;
                 break;
@@ -157,6 +159,11 @@ public class AnalysisMenu extends AppCompatActivity {
     }
 
     @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
+    @Override
     public void onBackPressed() {
         backKeyHandler.onBackPressed();
     }
@@ -177,6 +184,7 @@ public class AnalysisMenu extends AppCompatActivity {
     }
 
     Uri photoUri;
+
     private void faceAnalysis() {
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions((Activity) getApplicationContext(), new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
@@ -198,7 +206,7 @@ public class AnalysisMenu extends AppCompatActivity {
                 System.err.println(ex);
             }
 
-            if(photoFile != null) {
+            if (photoFile != null) {
                 photoUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", photoFile);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                 // onActivityResult에 결과 값을 줌
@@ -223,13 +231,12 @@ public class AnalysisMenu extends AppCompatActivity {
     }
 
     Button.OnClickListener nextEvent = new Button.OnClickListener() {
-        public void onClick(View v)
-        {
+        public void onClick(View v) {
             // descCursor에 맞게 desc를 출력하거나 액티비티 호출.
-            if(descCursor == GO_CAMERA_MENU) {
+            if (descCursor == GO_CAMERA_MENU) {
                 faceAnalysis();
                 return;
-            } else if(descCursor < desc.length)
+            } else if (descCursor < desc.length)
                 descText.setText(desc[descCursor]);
             else analysisBinding.openCommModel(emotionResult);
 
@@ -239,15 +246,15 @@ public class AnalysisMenu extends AppCompatActivity {
             nextBtn.setVisibility(View.VISIBLE);
 
             // desc 출력 외의 설정이 필요할 경우
-            if(descCursor == 2) { // "오늘의 얼굴을 보여주세요!"
+            if (descCursor == 2) { // "오늘의 얼굴을 보여주세요!"
                 descCursor = GO_CAMERA_MENU;
                 // 애니메이션 수정
-                characterAnim = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.floating_stop);
+                characterAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.floating_stop);
                 characterDesc.startAnimation(characterAnim);
                 // 캐릭터 이미지 수정
                 characterDesc.setImageDrawable(drawable[1]);
                 return;
-            } else if(descCursor == 6) {    // "아니면 사실 다른 기분이신가요?""
+            } else if (descCursor == 6) {    // "아니면 사실 다른 기분이신가요?""
                 // 감정 선택 뷰를 나타낸다.
                 emoBtnGroupLayout.setVisibility(View.VISIBLE);
                 // 뷰 애니메이션 설정
@@ -255,16 +262,16 @@ public class AnalysisMenu extends AppCompatActivity {
                 emoBtnGroupLayout.startAnimation(viewAnim);
 
                 nextBtn.setVisibility(View.GONE);
-            } else if(descCursor == 7) {    // "알겠어요"
+            } else if (descCursor == 7) {    // "알겠어요"
                 // 애니메이션 수정
-                characterAnim = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.floating_stop);
+                characterAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.floating_stop);
                 characterDesc.startAnimation(characterAnim);
                 // 캐릭터 이미지 수정
                 characterDesc.setImageDrawable(drawable[2]);
                 // desc를 끝낸다. 길이보다 높은 인덱스를 줌.
                 descCursor = desc.length;
                 return;
-            } else if(descCursor == 8) {    // "다시 찍어드릴까요?"
+            } else if (descCursor == 8) {    // "다시 찍어드릴까요?"
                 // 재 촬영 선택 뷰를 나타낸다.
                 reCaptureLayout.setVisibility(View.VISIBLE);
                 nextBtn.setVisibility(View.GONE);
@@ -273,12 +280,12 @@ public class AnalysisMenu extends AppCompatActivity {
                 return;
             }
 
-            if(descCursor == 4) {   // "제가 보기엔 ", " 하루셨던 것 같네요."
+            if (descCursor == 4) {   // "제가 보기엔 ", " 하루셨던 것 같네요."
                 // 기본 이미지로 변경.
                 characterDesc.setImageDrawable(drawable[0]);
                 descText.append(emotionResult);
                 descText.append(desc[++descCursor]);
-                if(emotionResult == "복잡한") {
+                if (emotionResult == "복잡한") {
                     descCursor = 8; // "다시 찍어드릴까요?"
                     return;
                 }
@@ -289,8 +296,7 @@ public class AnalysisMenu extends AppCompatActivity {
     };
 
     Button.OnClickListener reCapture = new Button.OnClickListener() {
-        public void onClick(View v)
-        {
+        public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.reCapYesBtn:
                     faceAnalysis();
@@ -308,8 +314,7 @@ public class AnalysisMenu extends AppCompatActivity {
     };
 
     Button.OnClickListener analysWithAnswer = new Button.OnClickListener() {
-        public void onClick(View v)
-        {
+        public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.happyBtn:
                 case R.id.normalBtn:

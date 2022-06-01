@@ -1,13 +1,13 @@
 package com.example.t16_capstone;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
-import android.content.DialogInterface;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
@@ -41,6 +41,20 @@ public class MainActivity extends AppCompatActivity {
         // 권한 엑세스 함수
         checkPermission();
 
+        // 앱 최초 실행 열부 판단
+        SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
+        boolean checkFirst = pref.getBoolean("checkFirst", false); // 실행 전 false
+        if (checkFirst == false) {
+            // 튜토리얼 실행
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putBoolean("checkFirst", true); // 실행 되면 true 로
+            editor.commit();
+
+            Intent tutorialIntent = new Intent(MainActivity.this, TutorialActivity.class);
+            startActivity(tutorialIntent);
+            finish();
+        }
+
         // 애니메이션
         characterMain = (ImageView) findViewById(R.id.characterMain);
         Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.floating);
@@ -50,31 +64,17 @@ public class MainActivity extends AppCompatActivity {
         AnimationDrawable animationDrawable = (AnimationDrawable) speechBubbleMain.getBackground();
         animationDrawable.start();
 
-        // 종료 버튼
+        // 원래는 종료되는 버튼임
         ImageButton exitBtn = (ImageButton) findViewById(R.id.exitBtn);
         exitBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
-            public void onClick(View v){
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("정말로 종료하시겠습니까?");
-                builder.setTitle("종료 알림창")
-                        .setCancelable(false)
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int i) {
-                                finish();
-                            }
-                        })
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int i) {
-                                dialog.cancel();
-                            }
-                        });
-                AlertDialog alert = builder.create();
-                alert.setTitle("종료 알림창");
-                alert.show();
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), RecordListMenu.class);
+                // 화면전환 애니메이션 제거
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                //finish(); //액티비티 종료
             }
         });
 

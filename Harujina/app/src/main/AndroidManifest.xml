@@ -27,14 +27,16 @@
         android:theme="@style/Theme.T16_Capstone">
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <activity android:name=".TutorialActivity"/>
         <activity android:name=".SettingDialog" />
         <activity android:name=".AnalysisMenu" />
         <activity android:name=".CommunicationMenu" />

@@ -12,6 +12,8 @@ import android.database.sqlite.SQLiteStatement;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 class DBOpenHelper extends SQLiteOpenHelper {
     // 어플 패치를 할 때 필요시 버전을 올려주세요. 버전을 올리면 스토리 테이블을 삭제 후 다시 적용합니다.
@@ -461,5 +463,29 @@ public class DatabaseService {
 
         writer.execSQL("INSERT INTO analysisresultdb (diaryKey, anger, contempt, disgust, fear, happiness, neutral, sadness, surprise, emotion) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 new Object[] {diaryKey, emo[0], emo[1], emo[2], emo[3], emo[4], emo[5], emo[6], emo[7], emotionResult});
+    }
+    
+    /*-------------날짜 확인 메소드--------------*/
+
+    public boolean isAnalysedToday() {
+        boolean flag;
+        Date date = new Date(System.currentTimeMillis());
+        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+        String getTime = f.format(date);
+
+        Cursor cursor = selectAllDiaryDB();
+        System.out.println(cursor.getCount());
+        if(cursor.getCount() == 0) {
+            flag = false;
+        } else {
+            cursor.moveToLast();
+
+            if(getTime.equals(cursor.getString(2).split(" ")[0]))
+                flag = true;
+             else
+                flag = false;
+        }
+        cursor.close();
+        return flag;
     }
 }

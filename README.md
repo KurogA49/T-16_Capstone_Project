@@ -6,7 +6,7 @@
 
 - 팀원
 
-  ![team](/Users/ykm/Desktop/img/team.png)
+  ![team](./img/team.png)
 
 \-----------------------
 
@@ -16,7 +16,7 @@ COVID-19의 세계적 확산에 따른 사회적 거리두기가 이어졌고, �
 
 ## 설계 아키텍처
 
-![architecture](/Users/ykm/Desktop/img/architecture.png)
+![architecture](./img/architecture.png)
 
 
 

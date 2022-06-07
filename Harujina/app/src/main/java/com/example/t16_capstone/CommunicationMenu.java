@@ -26,6 +26,8 @@ import java.util.ArrayList;
 
 public class CommunicationMenu extends AppCompatActivity {
 
+    private BackKeyHandler backKeyHandler = new BackKeyHandler(this);
+
     String emotionResult;
     private StoryContents storyContents;
     private String[] contents;
@@ -95,21 +97,27 @@ public class CommunicationMenu extends AppCompatActivity {
         AnimationDrawable animationDrawable = (AnimationDrawable)speechBubbleComm.getBackground();
         animationDrawable.start();
 
+        AnimationDrawable animationDrawable2 = (AnimationDrawable)answerYesBtn.getBackground();
+        animationDrawable2.start();
+
+        AnimationDrawable animationDrawable3 = (AnimationDrawable)answerNoBtn.getBackground();
+        animationDrawable3.start();
+
         // 캐릭터 이미지 설정
         drawable = new Drawable[13];
         drawable[0] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
         drawable[1] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_1);
         drawable[2] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_2);
-        drawable[3] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
-        drawable[4] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
-        drawable[5] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
-        drawable[6] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
-        drawable[7] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
-        drawable[8] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
-        drawable[9] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
-        drawable[10] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
-        drawable[11] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
-        drawable[12] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_0);
+        drawable[3] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_3);
+        drawable[4] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_4);
+        drawable[5] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_5);
+        drawable[6] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_6);
+        drawable[7] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_7);
+        drawable[8] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_8);
+        drawable[9] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_9);
+        drawable[10] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_10);
+        drawable[11] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_11);
+        drawable[12] = ContextCompat.getDrawable(getApplicationContext(), R.drawable.character_12);
 
         // 스토리 진행
         storyContents = new StoryContents();
@@ -225,6 +233,11 @@ public class CommunicationMenu extends AppCompatActivity {
     // 감정 기록을 위한 다이어리 반환
     public ArrayList<String>[] receiveStoryDiary() {
         return new ArrayList[] {diaryQuestion, diaryAnswer};
+    }
+
+    @Override
+    public void onBackPressed() {
+        backKeyHandler.onBackPressed();
     }
 }
 

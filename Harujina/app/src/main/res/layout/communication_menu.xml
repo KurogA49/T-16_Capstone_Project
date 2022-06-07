@@ -99,7 +99,7 @@
                     android:layout_height="match_parent"
                     android:layout_width="0dp"
                     android:layout_weight="2"
-                    android:src="@drawable/tempbutton"
+                    android:src="@drawable/nextbutton"
                     android:background="@null"
                     android:scaleType="fitCenter"
                     android:adjustViewBounds="true"
@@ -170,20 +170,26 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:orientation="horizontal">
-                <Button
+                <android.widget.Button
                     android:id="@+id/answerYesBtn"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:layout_margin="50dp"
-                    android:text="응"/>
-                <Button
+                    android:text="응"
+                    android:textSize="20dp"
+                    android:textColor="@color/black"
+                    android:background="@drawable/selectbutton"/>
+                <android.widget.Button
                     android:id="@+id/answerNoBtn"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:layout_margin="50dp"
-                    android:text="아니"/>
+                    android:text="아니"
+                    android:textSize="20dp"
+                    android:textColor="@color/black"
+                    android:background="@drawable/selectbutton"/>
             </LinearLayout>
     </LinearLayout>
 

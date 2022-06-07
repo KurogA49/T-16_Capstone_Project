@@ -7,6 +7,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -32,6 +33,7 @@ public class RecordListMenu extends AppCompatActivity {
     ListView recordStringView;
     ImageView recordPartImage;
     ImageButton partQuitBtn;
+    ImageButton menuQuitBtn;
     TextView emotionResultText;
     TextView angerText;
     TextView contemptText;
@@ -53,6 +55,7 @@ public class RecordListMenu extends AppCompatActivity {
         recordPartLayout = findViewById(R.id.recordPartLayout);
         recordPartImage = findViewById(R.id.recordPartImage);
         partQuitBtn = findViewById(R.id.partQuitBtn);
+        menuQuitBtn = findViewById(R.id.menuQuitBtn);
         // 감정 검사 값
         emotionResultText = findViewById(R.id.emotionResultText);
         angerText = findViewById(R.id.angerRatio);
@@ -65,6 +68,11 @@ public class RecordListMenu extends AppCompatActivity {
         surpriseText = findViewById(R.id.surpriseRatio);
 
         partQuitBtn.setOnClickListener(partQuit);
+        menuQuitBtn.setOnClickListener(menuQuit);
+
+        // 애니메이션 설정
+        AnimationDrawable animationDrawable = (AnimationDrawable) menuQuitBtn.getDrawable();
+        animationDrawable.start();
 
         // 레이아웃 초기 설정
         recordPartLayout.setVisibility(View.GONE);
@@ -203,6 +211,13 @@ public class RecordListMenu extends AppCompatActivity {
         public void onClick(View v)
         {
             recordPartLayout.setVisibility(View.GONE);
+        }
+    };
+
+    Button.OnClickListener menuQuit = new Button.OnClickListener() {
+        public void onClick(View v)
+        {
+           finish();
         }
     };
 

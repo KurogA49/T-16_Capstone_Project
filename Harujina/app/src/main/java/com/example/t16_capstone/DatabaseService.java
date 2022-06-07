@@ -18,7 +18,7 @@ import java.util.Date;
 class DBOpenHelper extends SQLiteOpenHelper {
     // 어플 패치를 할 때 필요시 버전을 올려주세요. 버전을 올리면 스토리 테이블을 삭제 후 다시 적용합니다.
     public DBOpenHelper(Context context) {
-        super(context, "MainDB", null, 8);
+        super(context, "MainDB", null, 9);
     }
 
     //SQLiteOpenHelper는 기존의 DB유무를 확인하고 생성하기 때문에, 덮여쓰일 걱정은 하지않아도 된다.
@@ -63,6 +63,9 @@ public class DatabaseService {
             importRecommendedFile();
             importStoryContentsFile();
         } else System.out.println("스토리 존재함");
+        if(selectAppSettingDB().getCount() == 0) {
+            insertAppSettingDB();
+        } else System.out.println("앱 세팅 존재함");
     }
 
     public void dropTable(String option) {
@@ -164,7 +167,7 @@ public class DatabaseService {
 
     public void insertAppSettingDB() {
         SQLiteDatabase writer = dbOpenHelper.getWritableDatabase();
-        writer.execSQL("INSERT INTO appsettingdb (settingKey, continuousEmotion, continuousCount) values (0, null, null)");
+        writer.execSQL("INSERT INTO appsettingdb (settingKey, continuousEmotion, continuousCount) values (0, \"긍정적임\", 0)");
     }
 
     /*-------------테이블 수정 메소드--------------*/
@@ -464,7 +467,7 @@ public class DatabaseService {
         writer.execSQL("INSERT INTO analysisresultdb (diaryKey, anger, contempt, disgust, fear, happiness, neutral, sadness, surprise, emotion) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 new Object[] {diaryKey, emo[0], emo[1], emo[2], emo[3], emo[4], emo[5], emo[6], emo[7], emotionResult});
     }
-    
+
     /*-------------날짜 확인 메소드--------------*/
 
     public boolean isAnalysedToday() {
@@ -472,20 +475,20 @@ public class DatabaseService {
         Date date = new Date(System.currentTimeMillis());
         SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
         String getTime = f.format(date);
+        System.out.println(getTime);
 
         Cursor cursor = selectAllDiaryDB();
-        System.out.println(cursor.getCount());
         if(cursor.getCount() == 0) {
             flag = false;
         } else {
             cursor.moveToLast();
-
             if(getTime.equals(cursor.getString(2).split(" ")[0]))
                 flag = true;
-             else
+            else
                 flag = false;
         }
         cursor.close();
         return flag;
     }
+
 }

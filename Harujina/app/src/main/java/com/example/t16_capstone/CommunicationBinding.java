@@ -74,7 +74,7 @@ public class CommunicationBinding {
         this.intent = intent;
 
         this.menu = menu;
-        this.emotionResult = intent.getStringExtra("emotionResult");;
+        this.emotionResult = intent.getStringExtra("emotionResult");
 
         dbsvs = new DatabaseService(menu);
         DBStory = new StoryContents();
@@ -123,13 +123,64 @@ public class CommunicationBinding {
         return DBStory;
     }
 
+    // 부정적 감정이 5일 이상 지속되는지 확인.
     private boolean checkContinuousEmotion() {
-        // 부정적 감정이 5일 이상 지속되는지 확인.
+        Cursor cursor = dbsvs.selectAppSettingDB();
+        cursor.moveToNext();
+
+        // 부정적임의 count가 1이상이면 true를 반환한다.
+        // 원래 의도는 5일 지속 정도로 작성하였음.
+        if(cursor.getString(1).equals("부정적임") && cursor.getInt(2) >= 1) {
+            System.out.println("트루반환함");
+            return true;
+        }
         return false;
     }
 
     // 감정 기록 후 메인 화면으로 돌아간다.
     public void quitComm() {
+            // 감정 기록 내용 저장
         recordDiary.saveRecordData();
+
+            // 감정 지속도 갱신
+        Cursor cursor = dbsvs.selectAppSettingDB();
+        cursor.moveToNext();
+        // 부정적인 감정이면 부정적임 count를 +1한다.
+        switch(cursor.getString(1)) {
+            case "부정적임":
+                switch(emotionResult) {
+                    case "기분나쁜":
+                    case "불안한":
+                    case "슬픈":
+                        int count = cursor.getInt(2);
+                        dbsvs.updateAppSettingDB("부정적임", ++count);
+                        break;
+                    default:
+                        dbsvs.updateAppSettingDB("긍정적임", 0);
+                        break;
+                }
+                break;
+            case "긍정적임":
+                switch(emotionResult) {
+                    case "기분나쁜":
+                    case "불안한":
+                    case "슬픈":
+                        dbsvs.updateAppSettingDB("부정적임", 0);
+                        break;
+                    default:
+                        int count = cursor.getInt(2);
+                        dbsvs.updateAppSettingDB("긍정적임", ++count);
+                        break;
+                }
+                break;
+        }
+        System.out.println(cursor.getString(1) + cursor.getInt(2));
+
+            // 메인화면으로 돌아가기
+        Intent intent = new Intent(menu, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        menu.startActivity(intent);
+        menu.finish(); //액티비티 종료
+        menu.overridePendingTransition(R.anim.not_move_activity,R.anim.rightout_activity);
     }
 }

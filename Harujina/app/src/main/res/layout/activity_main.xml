@@ -19,15 +19,17 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-            <ImageView
-                android:id="@+id/characterMain"
+            <ImageButton
+                android:id="@+id/characterMainBtn"
                 android:layout_gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/character_0"
+                android:background="@null"
+                android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
                 android:layout_margin="40dp">
-            </ImageView>
+            </ImageButton>
         </FrameLayout>
     </LinearLayout>
 
@@ -45,11 +47,11 @@
                 android:layout_height="match_parent"
                 android:layout_width="0dp"
                 android:layout_weight="2"
-                android:src="@drawable/tempbutton"
+                android:src="@drawable/exit"
                 android:background="@null"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
-                android:padding="10dp">
+                android:padding="20dp">
             </ImageButton>
             <LinearLayout
                 android:layout_height="match_parent"
@@ -60,7 +62,7 @@
                 android:layout_height="match_parent"
                 android:layout_width="0dp"
                 android:layout_weight="2"
-                android:src="@drawable/tempbutton"
+                android:src="@drawable/alarm"
                 android:background="@null"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
@@ -84,16 +86,34 @@
                     android:layout_weight="7">
                 </LinearLayout>
                 <LinearLayout
+                    android:id="@+id/mainSpeechLayout"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="10">
-                    <ImageView
-                        android:id="@+id/speechBubbleMain"
+                    android:layout_weight="10"
+                    android:visibility="invisible">
+                    <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/speechbubble"
-                        android:layout_margin="10dp">
-                    </ImageView>
+                        android:layout_height="match_parent">
+                        <ImageView
+                            android:id="@+id/speechBubbleMain"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/speechbubble"
+                            android:layout_marginTop="20dp"
+                            android:layout_marginBottom="20dp"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp">
+                        </ImageView>
+                        <TextView
+                            android:id="@+id/speechMain"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="30dp"
+                            android:textSize="16dp"
+                            android:textColor="@color/black"
+                            android:gravity="center"
+                            android:text="오늘을 일기를 쓰시려면\n 저를 눌러주세요!"/>
+                    </FrameLayout>
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="0dp"
@@ -116,22 +136,30 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="5"/>
+                android:layout_weight="5">
+                <ImageButton
+                    android:visibility="gone"
+                    android:id="@+id/debugBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="100dp"
+                    android:layout_marginTop="100dp">
+                </ImageButton>
+            </LinearLayout>
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="4">
 
                 <ImageButton
-                    android:id="@+id/nextBtn"
+                    android:id="@+id/diaryBtn"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="2"
                     android:adjustViewBounds="true"
                     android:background="@null"
-                    android:padding="10dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/tempbutton"></ImageButton>
+                    android:scaleType="fitEnd"
+                    android:src="@drawable/diary"></ImageButton>
             </LinearLayout>
         </LinearLayout>
 

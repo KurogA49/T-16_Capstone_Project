@@ -9,10 +9,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -23,6 +28,8 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 
 public class SettingDialog extends AppCompatActivity {
+    private BackKeyHandler backKeyHandler = new BackKeyHandler(this);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +37,6 @@ public class SettingDialog extends AppCompatActivity {
 
         final TimePicker picker = (TimePicker) findViewById(R.id.timePicker);
         picker.setIs24HourView(true);
-
 
         // 앞서 설정한 값으로 보여주기
         // 없으면 디폴트 값은 현재시간
@@ -43,7 +49,6 @@ public class SettingDialog extends AppCompatActivity {
         Date nextDate = nextNotifyTime.getTime();
         String date_text = new SimpleDateFormat("yyyy년 MM월 dd일 EE요일 a hh시 mm분 ", Locale.getDefault()).format(nextDate);
         Toast.makeText(getApplicationContext(), "[처음 실행시] 다음 알람은 " + date_text + "으로 알람이 설정되었습니다!", Toast.LENGTH_SHORT).show();
-
 
         // 이전 설정값으로 TimePicker 초기화
         Date currentTime = nextNotifyTime.getTime();
@@ -62,6 +67,31 @@ public class SettingDialog extends AppCompatActivity {
             picker.setCurrentMinute(pre_minute);
         }
 
+        ImageButton backButton = findViewById(R.id.backButton);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // 메인화면으로 돌아가기
+                finish(); //액티비티 종료
+                overridePendingTransition(R.anim.not_move_activity,R.anim.rightout_activity);
+            }
+        });
+
+        // 애니메이션
+        ImageView characterSetting = findViewById(R.id.characterSetting);
+        Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.floating);
+        characterSetting.startAnimation(animation);
+
+        AnimationDrawable animationDrawable2 = (AnimationDrawable) backButton.getDrawable();
+        animationDrawable2.start();
+
+        Button cancelButton = findViewById(R.id.cancelButton);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                cancelAlarm();
+            }
+        });
 
         Button button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
@@ -127,8 +157,6 @@ public class SettingDialog extends AppCompatActivity {
 
         // 사용자가 매일 알람을 허용했다면
         if (dailyNotify) {
-
-
             if (alarmManager != null) {
 
                 alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
@@ -145,6 +173,20 @@ public class SettingDialog extends AppCompatActivity {
                     PackageManager.DONT_KILL_APP);
 
         }
+    }
+
+    void cancelAlarm() {
+        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_IMMUTABLE);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        alarmManager.cancel(pendingIntent);
+        Toast.makeText(getApplicationContext(), "알람 설정이 취소되었습니다.", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        backKeyHandler.onBackPressed();
     }
 
 }

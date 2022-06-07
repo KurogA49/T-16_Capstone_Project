@@ -5,15 +5,20 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.AnimationDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,8 +27,10 @@ public class MainActivity extends AppCompatActivity {
 
     private BackKeyHandler backKeyHandler = new BackKeyHandler(this);
     private final int MY_PERMISSIONS_REQUEST_CAMERA = 1001;
-    private ImageView characterMain;
+    private ImageButton characterMainBtn;
     private ImageView speechBubbleMain;
+    private TextView speechMain;
+    private LinearLayout mainSpeechLayout;
 
     // 데이터베이스 초기화
     private DatabaseService dbsvs;
@@ -39,33 +46,47 @@ public class MainActivity extends AppCompatActivity {
         // 권한 엑세스 함수
         checkPermission();
 
+        // 앱 최초 실행 열부 판단
+        SharedPreferences pref = getSharedPreferences("checkFirst", Activity.MODE_PRIVATE);
+        boolean checkFirst = pref.getBoolean("checkFirst", false); // 실행 전 false
+        if (checkFirst == false) {
+            // 튜토리얼 실행
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putBoolean("checkFirst", true); // 실행 되면 true 로
+            editor.commit();
+
+            Intent tutorialIntent = new Intent(MainActivity.this, TutorialActivity.class);
+            startActivity(tutorialIntent);
+            finish();
+        }
+
+        ImageButton settingBtn = (ImageButton) findViewById(R.id.settingBtn);
+        ImageButton exitBtn = (ImageButton) findViewById(R.id.exitBtn);
+        ImageButton diaryBtn = (ImageButton) findViewById(R.id.diaryBtn);
+        mainSpeechLayout = findViewById(R.id.mainSpeechLayout);
+        speechMain = findViewById(R.id.speechMain);
+
+        // 하루 판단 메소드. 판단 후 하루 기록이 진행되지 않았으면 말풍선을 띄운다.
+        if (!dbsvs.isAnalysedToday()) {
+            speechMain.setText("오늘을 일기를 쓰시려면\n저를 눌러주세요!");
+            mainSpeechLayout.setVisibility(View.VISIBLE);
+        }
+
         // 애니메이션
-        characterMain = (ImageView) findViewById(R.id.characterMain);
+        characterMainBtn = findViewById(R.id.characterMainBtn);
         Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.floating);
-        characterMain.startAnimation(animation);
+        characterMainBtn.startAnimation(animation);
 
         speechBubbleMain = findViewById(R.id.speechBubbleMain);
         AnimationDrawable animationDrawable = (AnimationDrawable) speechBubbleMain.getBackground();
         animationDrawable.start();
 
-        // 원래는 종료되는 버튼임
-        ImageButton exitBtn = (ImageButton) findViewById(R.id.exitBtn);
-        exitBtn.setOnClickListener(new View.OnClickListener() {
+        AnimationDrawable animationDrawable2 = (AnimationDrawable) exitBtn.getDrawable();
+        animationDrawable2.start();
 
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), RecordListMenu.class);
-                // 화면전환 애니메이션 제거
-                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivity(intent);
-                //finish(); //액티비티 종료
-            }
-        });
-
-        // 원래는 감정 기록 리스트로 가는 버튼임
-        ImageButton nextBtn = (ImageButton) findViewById(R.id.nextBtn);
-        nextBtn.setOnClickListener(new View.OnClickListener() {
-
+        // 디버그 버튼(분석화면 제약없이 이동 가능)
+        ImageButton debugBtn = findViewById(R.id.debugBtn);
+        debugBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), AnalysisMenu.class);
@@ -77,8 +98,51 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 캐릭터를 클릭하면 하루에 한 번 감정 분석 진행 가능
+        characterMainBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!dbsvs.isAnalysedToday()) {
+                    Intent intent = new Intent(getApplicationContext(), AnalysisMenu.class);
+                    intent.putExtra("Argv", "MainToDesc");
+                    // 화면전환 애니메이션 제거
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivity(intent);
+                    finish(); //액티비티 종료
+                } else {
+                    speechMain.setText("오늘은 일기를 작성하셨네요.\n 일기에서 확인해보세요.");
+                    mainSpeechLayout.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        // 원래는 종료되는 버튼임
+        exitBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 프로그램 완전 종료
+                if (Build.VERSION.SDK_INT >= 21) {
+                    finishAndRemoveTask();
+                } else {
+                    finish();
+                }
+                System.exit(0);
+            }
+        });
+
+        // 원래는 감정 기록 리스트로 가는 버튼임
+        diaryBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), RecordListMenu.class);
+                // 화면전환 애니메이션 제거
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                //finish(); //액티비티 종료
+            }
+        });
+
         // 원래는 세팅 화면으로 가는 버튼임
-        ImageButton settingBtn = (ImageButton) findViewById(R.id.settingBtn);
         settingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

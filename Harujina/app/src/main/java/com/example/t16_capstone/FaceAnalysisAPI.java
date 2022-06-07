@@ -27,6 +27,7 @@ import java.io.InputStream;
 
 public class FaceAnalysisAPI {
 
+
     private FaceServiceClient faceServiceClient;
     private Bitmap mBitmap;
     private Activity menu;

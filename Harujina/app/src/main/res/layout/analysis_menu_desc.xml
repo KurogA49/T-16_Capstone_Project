@@ -99,7 +99,7 @@
                     android:layout_height="match_parent"
                     android:layout_width="0dp"
                     android:layout_weight="2"
-                    android:src="@drawable/tempbutton"
+                    android:src="@drawable/nextbutton"
                     android:background="@null"
                     android:scaleType="fitCenter"
                     android:adjustViewBounds="true"

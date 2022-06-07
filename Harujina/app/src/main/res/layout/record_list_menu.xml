@@ -14,11 +14,12 @@
             android:layout_weight="1.25"
             android:orientation="horizontal">
             <ImageButton
+                android:id="@+id/menuQuitBtn"
                 android:padding="5dp"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:src="@drawable/tempbutton"
+                android:src="@drawable/exit"
                 android:background="@null"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"/>
@@ -39,7 +40,6 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:src="@drawable/tempbutton"
                 android:background="@null"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"/>
@@ -65,7 +65,8 @@
     <FrameLayout
         android:id="@+id/recordPartLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:visibility="gone">
         <ImageButton
             android:layout_width="match_parent"
             android:layout_height="match_parent"

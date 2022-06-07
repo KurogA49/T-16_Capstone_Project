@@ -18,6 +18,9 @@ COVID-19의 세계적 확산에 따른 사회적 거리두기가 이어졌고, �
 
 ![architecture](./img/architecture.png)
 
+## 프로젝트 진행과정
+![process](./img/process.png)
+
 
 
 ## 제공되는 기능
